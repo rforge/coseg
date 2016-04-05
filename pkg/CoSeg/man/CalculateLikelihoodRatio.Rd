@@ -34,7 +34,7 @@ A boolean(or logical) vector where 0 is unaffected and 1 is affected.
 %% ~put references to the literature/web site here ~
 }
 \author{
-%%  ~~who you are~~
+John Michael O. Ranola and Brian H. Shirts
 }
 \note{
 %%  ~~further notes~~
@@ -54,5 +54,5 @@ A boolean(or logical) vector where 0 is unaffected and 1 is affected.
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ cosegregation }
-\keyword{ pedigree }% __ONLY ONE__ keyword per line
+\keyword{}
+\keyword{}% __ONLY ONE__ keyword per line

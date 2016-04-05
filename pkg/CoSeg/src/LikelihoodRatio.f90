@@ -247,7 +247,8 @@ end module rprint
 subroutine likelihood_ratio_main(NumberPeople, NumberProbandFounders, &
   ObservedSeparatingMeioses, NumberOffspring, PedGenotype, FounderCols, &
   NumberGenotypesVec, AllPhenotypeProbabilities, ProbandAncestors,  &
-	ObservedVector, AncestorDescendentArray, LikelihoodRatio)
+	ObservedVector, AncestorDescendentArray, MomRow, DadRow, &
+	MinimalObservedPedigree, LikelihoodRatio)
   !the general idea here is that we are finding all possible genotype.  The way we do this is we start with the left most variable genotype(lowest number) and fix it to 0.  This in turn fixes a lot of the genotype to the right(higher numbers).  To keep track of these, we set status.vector to be an integer vector where 0 means the genotype does not need to be modified anymore, otherwise it shows the number of the genotype that currently fixed it or number.people+1 if it hasn't been touched yet.  We then go right(increasing number) to the next variable genotype and fix it to 0, fix those that become fixed because of that, and modify status.vector accordingly.  Once status.vector is completely fixed, we have a viable genotype.  We now save the genotype*phenotype probabilities for that genotype for the numerator and denominator of the likelihood ratio.  We then proceed back left left(decreasing number) to the last fixed genotype and fix it to 1 and see if this fixes anything to the right(though it shouldn't).
 
 use constants
@@ -257,18 +258,19 @@ implicit none
 
 !inputs
 integer :: NumberPeople, NumberProbandFounders, ObservedSeparatingMeioses
-integer, dimension(NumberPeople) :: NumberOffspring, PedGenotype
+integer, dimension(NumberPeople) :: NumberOffspring, PedGenotype, MomRow, DadRow
 integer, dimension(NumberProbandFounders) :: FounderCols
 integer, dimension(2) :: NumberGenotypesVec
 real(kind=dble_prec), dimension(2,NumberPeople) :: AllPhenotypeProbabilities
-logical, dimension(NumberPeople) :: ProbandAncestors, ObservedVector
+logical, dimension(NumberPeople) :: MinimalObservedPedigree, ProbandAncestors, &
+		ObservedVector
 logical, dimension(NumberPeople,NumberPeople) :: AncestorDescendentArray
 
 !outputs
 real(kind=dble_prec) :: LikelihoodRatio
 
 !extra variables
-integer :: i, j, k, counter, int1
+integer :: i, j, k, counter, int1, int2
 integer(kind=8) :: number_genotypes_found
 integer, dimension(NumberPeople) :: status_vector, temp_changes
 logical, dimension(NumberPeople) :: founder_descendents, lineage_genotype, &
@@ -329,11 +331,6 @@ do i=1,NumberProbandFounders
   end do
 
   do while(sum(status_vector)>=0)
-    !prints out the current status
-    if(mod(number_genotypes_found,25000000).eq.0) then
-      call intpr("Number genotypes found times 25 million: ",-1,number_genotypes_found/25000000,1)
-      call dblepr("Fraction done (note that this is note linear with number genotypes):",-1,check_den_genotype_probability,1)
-    end if
 
     !note: temp.genotype is 0 everywhere except for lineage.genotype
     !move right(increasing) filling the vector
@@ -351,7 +348,14 @@ do i=1,NumberProbandFounders
     !found a viable vector so save genotype*phenotype probabilities into numerator and denominator
     number_genotypes_found=number_genotypes_found+1
 
+		!prints out the current status
+		if(mod(number_genotypes_found,25000000).eq.0) then
+			call intpr("Number genotypes found times 25 million: ",-1,number_genotypes_found/25000000,1)
+			call dblepr("Fraction done (note that this is note linear with number genotypes):",-1,check_den_genotype_probability,1)
+		end if
+
     !denominator is updated regardless
+		!int1 is the number of offspring that are potential carriers.
     int1=0
     do j=1,NumberPeople
       if(temp_genotype(j)) then
@@ -368,6 +372,9 @@ do i=1,NumberProbandFounders
     check_den_genotype_probability=check_den_genotype_probability+denominator_genotype_probability
 
     !numerator is updated if the current genotype vector matches the observed genotype
+		! call intpr("temp_genotype", -1, temp_genotype, size(temp_genotype))
+		! call intpr("PedGenotype", -1, PedGenotype, size(PedGenotype))
+		! call intpr("ObservedVector", -1, ObservedVector, size(ObservedVector))
     logical1=.true.
     do j=1,NumberPeople
       if(ObservedVector(j)) then
@@ -376,7 +383,7 @@ do i=1,NumberProbandFounders
             logical1=.false.
             exit
           end if
-        else
+        else !if temp_genotype(j).eq.0
           if(PedGenotype(j).eq.1) then
             logical1=.false.
             exit
@@ -385,10 +392,32 @@ do i=1,NumberProbandFounders
       end if
     end do
     if(logical1) then
-			if(ObservedSeparatingMeioses-int1>0 .and. ObservedSeparatingMeioses-int1<=NumberPeople) then
-				numerator_genotype_probability=powers_of_two(ObservedSeparatingMeioses-int1)
+			if(all(ObservedVector)) then
+				numerator_genotype_probability=1
 			else
-      	numerator_genotype_probability=2.**(ObservedSeparatingMeioses-int1)
+
+				!Here we count the number of unknown genotype people who have a carrier parent
+				!note that implied genotypes are counted as known (Thus MinimalObservedPedigree is used)
+				int2=0
+		    do j=1,NumberPeople
+					if(.not.ObservedVector(j) .and. .not.MinimalObservedPedigree(j)) then !check his parents if one of them is a carrier
+						if(MomRow(j)>0 .and. DadRow(j)>0) then
+							if(temp_genotype(MomRow(j)) .or. temp_genotype(DadRow(j))) then
+			        	int2=int2+1
+							end if
+						end if
+		      end if
+		    end do
+
+				if(int2>0 .and. int2<=NumberPeople) then
+				numerator_genotype_probability=powers_of_two(int2)
+				! call dblepr("1st Numerator check: ",-1,numerator_genotype_probability,1)
+			!else if(ObservedSeparatingMeioses-int1>0) then
+      	!numerator_genotype_probability=2.**(-ObservedSeparatingMeioses+int1)
+				else
+					numerator_genotype_probability=2.**(-int2)
+					! call dblepr("Numerator check: ",-1,numerator_genotype_probability,1)
+				end if
 			end if
       check_num_genotype_probability=check_num_genotype_probability+numerator_genotype_probability
       lr_numerator=lr_numerator+phenotype_probability*numerator_genotype_probability
@@ -439,10 +468,10 @@ NumberGenotypesVec(1)=number_genotypes_found/2147483647
 NumberGenotypesVec(2)=mod(number_genotypes_found,2147483647)
 
 if(check_num_genotype_probability<1-1E-6) then
-  call dblepr("Total numerator genotype probability(Should be 1): ",-1,check_num_genotype_probability,1)
+  call dblepr("Error: Total numerator genotype probability(Should be 1): ",-1,check_num_genotype_probability,1)
 end if
 if(check_den_genotype_probability<1-1E-6) then
-  call dblepr("Total denominator genotype probability(Should be 1): ",-1, check_den_genotype_probability,1)
+  call dblepr("Error: Total denominator genotype probability(Should be 1): ",-1, check_den_genotype_probability,1)
 end if
 
 call intpr("Number of genotypes found: ",-1,number_genotypes_found,1)

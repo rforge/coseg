@@ -1,36 +1,44 @@
-\name{CoSeg-package}
-\alias{CoSeg-package}
-\alias{CoSeg}
-\docType{package}
+\name{plotped}
+\alias{plotped}
+%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-\packageTitle{CoSeg}
+Plots a tree/pedigree
 }
 \description{
-\packageDescription{CoSeg}
+This function uses the kinship2 package for easily plotting a tree.
+}
+\usage{
+plotped(ped)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{ped}{
+    A tree generated from \code{\link{make.tree}} or \code{\link{make.affected.trees}}.
+}
 }
 \details{
-
-The DESCRIPTION file:
-\packageDESCRIPTION{CoSeg}
-\packageIndices{CoSeg}
-~~ An overview of how to use the package, including the most important functions ~~
+%%  ~~ If necessary, more details than the description above ~~
 }
-\author{
-\packageAuthor{CoSeg}
-
-Maintainer: \packageMaintainer{CoSeg}
+\value{
+  No values returned but a plot is displayed.
 }
 \references{
-~~ Literature or other references for background information ~~
+%% ~put references to the literature/web site here ~
 }
-%~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R ~~
-%~~ documentation directory ~~
-\keyword{ package }
+\author{
+John Michael O. Ranola and Brian H. Shirts
+}
+\note{
+%%  ~~further notes~~
+}
+
+%% ~Make other sections like Warning with \section{Warning }{....} ~
+
 \seealso{
-%~~ Optional links to other man pages, e.g. ~~
-%~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+%% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+
   #Load all the data included in the CoSeg package.
   data(BRCA1frequencies.df, package="CoSeg")
   data(BRCA2frequencies.df, package="CoSeg")
@@ -60,4 +68,9 @@ Maintainer: \packageMaintainer{CoSeg}
 
   #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
   plotped(tree3)
+
 }
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{ ~kwd1 }
+\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

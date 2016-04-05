@@ -1,34 +1,31 @@
-\name{CoSeg-package}
-\alias{CoSeg-package}
-\alias{CoSeg}
-\docType{package}
+\name{BRCA1frequencies.df}
+\alias{BRCA1frequencies.df}
+\docType{data}
 \title{
-\packageTitle{CoSeg}
+BRCA1 cancer incidence data frame
 }
 \description{
-\packageDescription{CoSeg}
+A dataframe containing annual incidence of cancers affected by the BRCA1 gene, namely ovarian cancer and breast cancer.
+}
+\usage{data("BRCA1frequencies.df")}
+\format{
+  A data frame with 800 observations on the following 5 variables.
+  \describe{
+    \item{\code{age}}{A numeric vector giving the age the data is relevant for.}
+    \item{\code{cancer.type}}{A factor with levels \code{bBRCA1} and \code{oBRCA1} which stands for breast BRCA1 cancer and ovarian BRCA1 cancer.}
+    \item{\code{female}}{A boolean/numeric vector indicating whether the data is for females(1) or males(0).}
+    \item{\code{carrier}}{A boolean/numeric vector depicting whether the data is for a carrier(1) or non-carrier(0).}
+    \item{\code{frequencies}}{A numeric vector giving the cancer incidence based on age, sex, carrier status, and gender.}
+  }
 }
 \details{
-
-The DESCRIPTION file:
-\packageDESCRIPTION{CoSeg}
-\packageIndices{CoSeg}
-~~ An overview of how to use the package, including the most important functions ~~
+Data was converted to annual incidence using a spline with 3 df's.  Risk of cancer for people below age 20 was set at 0.
 }
-\author{
-\packageAuthor{CoSeg}
-
-Maintainer: \packageMaintainer{CoSeg}
+\source{
+Penetrance data from PMID: 20204502.
 }
 \references{
-~~ Literature or other references for background information ~~
-}
-%~~ Optionally other standard keywords, one per line, from file KEYWORDS in the R ~~
-%~~ documentation directory ~~
-\keyword{ package }
-\seealso{
-%~~ Optional links to other man pages, e.g. ~~
-%~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+%%  ~~ possibly secondary sources and usages ~~
 }
 \examples{
   #Load all the data included in the CoSeg package.
@@ -61,3 +58,4 @@ Maintainer: \packageMaintainer{CoSeg}
   #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
   plotped(tree3)
 }
+\keyword{datasets}

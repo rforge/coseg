@@ -1,3 +1,288 @@
+.demog.nat <-
+function(yrborn, sex, demographics.df=NULL){
+
+  if(is.null(demographics.df)){
+    print("No demographics given.  Using USDemographics.df")
+    demographics.df=USDemographics.df
+  }
+  i<-age.m<-age.d<-deg.1.demog<-NULL  #initialize
+
+  #inyr<-c(1800, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000) #entry year
+  #out.year<-demographics.df$in.year+c(100, rep(10, each=10), 200)  #exit year extend to 2050.
+  #f.age.mar<-c(22.0, 21.09, 21.6, 21.2, 21.3, 21.5, 20.3, 20.8, 22.0, 23.9, 25.1, 26.1)  #average marriage age
+  #m.age.mar<-c(26.1, 26.1, 25.1, 24.6, 24.3, 24.3, 22.8, 23.2, 24.7, 26.1, 26.8, 28.2)
+  #national data below 1800 assumed to be the same as 1890
+  # f.age.death<-c(46.3, 48.3, 51.8, 54.6, 61.6, 65.2, 71.1, 74.7, 77.4, 78.8, 79.7, 81.1) #average life expectancy including infant mortality(what would be better is average life span excluding infant mortality, we know all people lived to reproductive age)
+  #m.age.death<-c(44.3, 46.3, 48.4, 53.6, 58.1, 60.8, 65.6, 67.1, 70.0, 71.8, 74.3, 76.2) # average life expectancy, including infant mortality
+  #f.age.death<-c(60.2, 62.03, 63.77, 64.88, 66.46, 68.52, 71.38, 74.56, 76.29, 77.244, 79.44, 80.3) # based on http://www.infoplease.com/ipa/A0005140.html life expectancy at 20
+  #m.age.death<-c(60.1, 60.66, 62.19, 62.71, 65.6, 66.02, 67.76, 69.52, 70.25, 70.22, 72.45, 74) # based on http://www.infoplease.com/ipa/A0005140.html life expectancy at 20
+
+  #aveh<-c(4.93, 4.76, 4.54, 4.34, 4.11, 3.77, 3.52, 3.14, 2.76, 2.63, 2.62, 2.61) #average household
+  #offsp<-c((2.66*0.67), (2.62*.77), (2.50*.8), (2.09*.83), (1.97*.92), (2.87*.94), (3.29*.962), (2.07*.97), (1.67*.977), (1.87*.985), (1.92*.89), (1.90*.991)) #average children/woman * (1-child mortality)
+  #offsp<-c((4.7*0.67), (3.8*.77), (3.6*.8), (3.3*.83), (2.4*.92), (2.2*.94), (3*.962), (3.7*.97), (2.5*.977), (1.8*.985), (2.1*.89), (2.1*.991)) #average children/woman from gapminder * (1-child mortality)
+   ####
+  if(sex==1){  #age by sex
+    age.m<-demographics.df$female.age.marriage
+    age.d<-demographics.df$female.age.death
+  }else{
+    age.m<-demographics.df$male.age.marriage
+    age.d<-demographics.df$male.age.death
+  }
+
+  age.mar<-offs<-NULL   #marriage age, average children
+  for (i in 1:length(demographics.df$in.year)){     ## generate marriage year from demographics
+    if (round(as.numeric(yrborn) + age.m[i]) >= demographics.df$in.year[i]-9 & round(as.numeric(yrborn) + age.m[i]) < demographics.df$out.year[i]+9){
+      #not monotonic so add fudge factor
+      age.mar<-age.m[i] # for marriage age and average children per woman
+      offs<-demographics.df$offspring[i]
+     }
+  }
+  age.death<-NULL  #death age
+  for (i in 1:length(demographics.df$in.year)){   ## generage death age
+    if (yrborn >= demographics.df$in.year[i] & yrborn  < demographics.df$out.year[i]){
+      age.death<-age.d[i] # for marriage age and average children per woman
+    }
+  }
+  ##create demographics using tables from population demographic and distributions roughly skewed roughly equal to reality
+  deg.1.demog<-list("age.mar"=ifelse(is.null(age.mar)==FALSE,round(rsnorm(1, age.mar, sd = 2.5, xi = 1.5),3),NA ), "age.death"=ifelse(is.null(age.mar)==FALSE,round(rsnorm(1, age.death, sd = (age.death/6), xi = .8),3),NA ), "offs"=ifelse(is.null(offs)==FALSE,rpois(1, lambda=abs(offs)),NA))
+  return(deg.1.demog)
+}
+.demog <-
+function(offnum, aveage, sdage){
+  n<-NULL
+  if(sum(n)==0){
+  n<-rpois(1, lambda=abs(offnum))
+  }#generate num of offsprings
+  print(n)
+  age<-round(rnorm(n, aveage, sdage),3)  #generage age
+  female<-sample(0:1, n, replace=T) #randomly assigne geneder
+  id<-c(1:n)#within family id
+  ped<-list("id"=id, "age"=age, "female"=female)
+return(ped)
+}
+.demog.2 <-
+function(offnum, y.birth, demographics.df=NULL){
+  age<-age.temp<-dead<-y.born<-NULL
+
+  if(is.null(offnum)){
+    offnum <-1
+  } ## make sure there are generations connecting proband's generation and ancestor.
+  if(is.na(offnum)){
+    offnum <-1
+  }
+  if(offnum <= 0){
+    offnum <-1
+  }
+  #  repeat{
+  #    offn<-rpois(1, lambda=abs(offnum))
+  #    offn<-ifelse(is.na(offn)==TRUE, 0, offn)
+  #    if(offn>0) break()
+  #  }
+  offn <- offnum
+  female<-sample(0:1, offn, replace=T) #randomly assigne geneder
+  id<-c(1:offn)#within family id
+
+  for (i in 1:offn){
+    y.born[i] <-ceiling(round(rnorm(1, y.birth, 5),3)) #initialize from y.birth of generation
+    age.temp[i]<-round(2010-y.born[i])
+    age[i]<-.demog.nat(y.born[i],female[i],demographics.df)$age.death
+    #age[i]<-.demog.nat.china(y.born[i],female[i])$age.death
+    dead[i]<-1
+    if (age.temp[i]< round(rnorm(1, 81.1, 5),3)){ #took the older age
+      age[i]<-age.temp[i]
+      dead[i]<-0
+    }
+  }
+  ped<-list("id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead)
+  #print(ped)
+return(ped)
+}
+.genotype <-
+function(mom, dad, ped){
+  fromdad<-frommom<-NULL
+
+  if(all(is.numeric(ped$id))==FALSE&all(is.numeric(ped$age))==FALSE&all(is.numeric(ped$female))==FALSE&all(is.numeric(ped$y.born))==FALSE){
+    ped$geno<-NA
+  }else{
+  # allele from dad
+ if(dad==1) {
+   fromdad <- sample(0:1, length(ped$id), replace=TRUE)
+   while(sum(fromdad)==0){
+     fromdad <- sample(0:1, length(ped$id), replace=TRUE)
+   }
+  } else if(dad==0){
+   fromdad <- sample(0, length(ped$id), replace=TRUE)
+  }
+  # allele from mom
+ if(mom==1) {
+     frommom <- sample(0:1, length(ped$id), replace=TRUE)
+     while(sum(frommom)==0){
+      frommom <- sample(0:1, length(ped$id), replace=TRUE)
+     }
+  }else if(mom==0){
+    frommom <- sample(0, length(ped$id), replace=TRUE)
+  }
+  # return kids' genotypes
+  ped$geno<-fromdad + frommom
+  }
+return(ped)
+}
+.grow.p <-
+function(prev.dat,demographics.df=NULL){
+  deg.num <- max(prev.dat$degree)
+  next.deg <- deg.num+1
+  tcur.deg <- subset(prev.dat, prev.dat$degree==deg.num)
+  i<- toffs<- deg<-fem<-mal<-dad<-mom<-momid<-dadid<-geno<-female<-id<-dead <-y.born<-age<-ids<-temp<-next.dat<- NULL
+  tids <- tcur.deg$id
+  kids <- 0
+   while(kids <1){   ## while loop to make sure there is at least one person with offspring
+    for (i in 1:nrow(tcur.deg)){
+    toffs[i] <- .demog.nat(tcur.deg[i,]$y.born, 1,demographics.df)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
+    #toffs[i] <- .demog.nat.china(tcur.deg[i,]$y.born, 1)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
+  	  }
+  	    	#print(toffs)
+  	kids <- sum(toffs,na.rm = TRUE)
+  	}
+  cur.deg.1 <- cbind(tcur.deg, toffs)
+  cur.deg <- subset(cur.deg.1, cur.deg.1$toffs > 0) ## do not generate spouse if no offspring
+  toffs <- cur.deg$toffs
+  #print(toffs)
+  cur.deg$toffs <- NULL
+  ids <- cur.deg$id  ## get id for individuals with offspring
+  for (i in 1:nrow(cur.deg)){
+          ###generate spouse
+          geno[i] <- 0 # these should all be 0 no carriers marry in # abs(prev.dat[prev.dat$id==car[i],]$geno-1)# 0 since choose the carrier
+          female[i]<-abs(cur.deg[cur.deg$id==ids[i],]$female-1) # gender opposite
+          if(female[i] == 0){
+            y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)-2, 3),3)  # choose age, men tend to be older than the women they marry
+           age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)-2, 3),3)  #choose age at death women usually outlive their spouses
+          }
+         if(female[i] == 1){
+           y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)+2, 3),3)  # choose age, men tend to be older than the women they marry
+           age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)+2, 3),3)  #choose age at death women usually outlive their spouses
+           }
+           id[i]<-cur.deg[cur.deg$id==ids[i],]$id+0.1  ## id of spouse is id of carrier-mate + 0.1
+           dead[i]<-1
+              if (round(2010-y.born[i]) < round(rnorm(1, 81.1, 5),3)){ dead[i]<-0}
+
+           in.2 <- data.frame(list("degree"=deg.num, "momid"=NA, "dadid"=NA, "id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead, "geno"=geno))
+
+        ##### generate offspring
+           in.1 <- cur.deg
+           temp<-list("degree"=next.deg, "momid"=NA, "dadid"=NA, "id"=NA, "age"=NA, "female"=NA,"y.born"=NA, "dead"=NA, "geno"=NA)
+            if (in.1[in.1$id==ids[i],]$female==1){  # if female parent from the initial pedigree
+               momid[i]<-in.1[in.1$id==ids[i],]$id
+               dadid[i]<-in.2$id[i]
+               fem[i]<-match(1, in.1[in.1$id==ids[i],]$female)  #determine mother and father genotypes
+               mal[i]<-match(0, in.2$female[i])
+               dad[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
+               mom[i] <- in.2$geno[mal[i]]
+               toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+               #toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat.china(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+               temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
+               temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
+               temp$momid<-momid[i]
+               temp$dadid<-dadid[i]
+               temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
+               temp<-as.data.frame(temp)
+               }else if(in.1[in.1$id==ids[i],]$female==0){
+               momid[i]<-in.2$id[i]
+               dadid[i]<-in.1[in.1$id==ids[i],]$id
+               fem[i]<-match(1, in.2$female[i])  #determine mother father genotypes
+               mal[i]<-match(0, in.1[in.1$id==ids[i],]$female)
+               dad[i] <- in.2$geno[mal[i]]
+               mom[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
+               toffyb <-  (in.2$y.born[i]) + (.demog.nat(in.2$y.born[i],1,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+               #toffyb <-  (in.2$y.born[i]) + (.demog.nat.china(in.2$y.born[i],1)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+               temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
+               temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
+               temp$momid<-momid[i]
+               temp$dadid<-dadid[i]
+               temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
+               temp<-as.data.frame(temp)
+               }
+
+             next.dat<- rbind(next.dat,temp)
+
+         }
+      ### can we remove the NA from the
+      next.dat$id <- 1:length(next.dat$id)
+      next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
+      next.dat.1<-rbind(prev.dat,in.2,next.dat)
+return(next.dat.1)
+}
+.risktoinci <-
+function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cumulative risk at those points
+	fit <- lm( y~ns(x, spli) )
+	xx <- seq(0,100, length.out=100)
+	xxx <- seq(1,101, length.out=100)
+	annual <- predict(fit, data.frame(x=xxx)) - predict(fit, data.frame(x=xx))
+	plot(x,y, xlim = c(0,100), ylim = c(0,0.9))
+	lines(xx, predict(fit, data.frame(x=xx)), col='orange')
+	annual <- c(rep(0,nzero),annual[(nzero+1):length(annual)])
+	for (i in 1:length(annual)){
+		if (annual[i] < 0){
+			annual[i] <- 0
+			}
+		}
+	return(annual)
+}
+.crisk <-
+function(age, sex, geno, frequencies.df){
+  cancer.names=unique(frequencies.df$cancer.type)
+  number.cancers=length(cancer.names)
+  number.ages=length(unique(frequencies.df$age))
+  freqs <- matrix(data=0,nrow = number.ages, ncol = number.cancers)  ### mtx of freqs annual incidence imputed from lifetime risk studies.
+  aff.result <- rep(0,number.cancers)
+  aoo.result <- rep(NA,number.cancers)
+
+  if(age >= 20){ #people below 20 don't have the cancer we are looking at
+    sub.frequencies.df=subset(frequencies.df,female==sex & carrier=={geno>=1})
+    for(i in 1:number.cancers){
+      temp=subset(sub.frequencies.df,cancer.type==cancer.names[i])
+      temp=temp[order(temp$age),] #arranges the ages to be ascending
+      freqs[,i]=temp$frequencies
+    }
+
+    ageT <- round(age)
+    if(ageT >=100){
+      ageT <- 99
+    } ### truncate age at 100 (risks at this age are rough estimates anyway)
+
+    samp <- matrix(nrow = number.ages, ncol = number.ages)
+
+    #here we sample to see whether each individual is affected
+    for(h in 1:number.cancers){
+      rbfreqs <-   rbinom(number.ages,100,freqs[,h])
+      for(i in 1:number.ages){
+        samp[i,] <- c(rep(0,(100-rbfreqs[i])),rep(1,rbfreqs[i]))
+      }
+      for(j in 1:ageT){
+        if(sample(x=samp[j,], size = 1) > 0){
+          aff.status <- 1
+          aff.result[h] <- aff.status
+          if(is.na(aoo.result[h] == TRUE)){
+            age.onset <- j
+            aoo.result[h] <- age.onset
+          }
+        }
+      }
+    }
+  }
+  return(c(aff.result,aoo.result))
+}
+
+
+
+
+
+
+
+
+
+
+
+
 #This is R code for OriGen made by John Michael O. Ranola ranolaj@uw.edu
 #if the function is not to be accessed by users, start with a period(.)
 
@@ -284,6 +569,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	temp.vec=ancestor.descendent.array[,temp.founder]
 	minimal.observed.pedigree=array(FALSE,dim=c(number.people))
 	for(i in 1:number.people){
+		#if(ped$genotype[i]==1 & affected.boolean[i]){!no need for this
 		if(ped$genotype[i]==1){
 			temp.lineage=ancestor.descendent.array[i,]&temp.vec
 			minimal.observed.pedigree=minimal.observed.pedigree|temp.lineage
@@ -318,7 +604,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	#R stores ints as 32-bits.  This gives a max value of about 2 billion.  We need a larger version so we store it as 2 32-bits integer.
 	number.genotypes.vec=array(0,dim=c(2))
 
-	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
+	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.observed.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
 
 	number.genotypes=lr.results$NumberGenotypesVec[1]*2147483647+lr.results$NumberGenotypesVec[2]
 	#return(list(likelihood.ratio=likelihood.ratio,reordering=order.vec,separating.meioses=observed.separating.meioses))
