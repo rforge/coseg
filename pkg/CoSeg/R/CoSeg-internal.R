@@ -546,15 +546,6 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 		}
 	}
 
-
-
-	# print(ped)
-	# print("observed.vector")
-	# print(observed.vector)
-	# print("pedigree.founder")
-	# print(pedigree.founder)
-	# print("ancestor.descendent.array")
-	# print(ancestor.descendent.array)
 	#now, we enumerate all possible phenotype probabilities (2 per individual)
 	#note that 1 is not carrier and 2 is carrier
 	all.phenotype.probabilities=array(0,dim=c(2,number.people))
@@ -654,6 +645,18 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 			}else{
 				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
 				return()
+			}
+		}
+	}
+	
+	#Here we modify the observed values so that all founders that do not contain all the observed carriers as descendents are non-carriers.
+	temp.descendents=minimal.carrier.pedigree
+	for(i in 1:number.people){
+		if(pedigree.founder[i]& !observed.vector[i]){
+			temp.descendents=ancestor.descendent.array[,i]
+			if(!all(temp.descendents[minimal.carrier.pedigree])){
+				ped$genotype[i]=0 
+				observed.vector[i]=TRUE 
 			}
 		}
 	}
