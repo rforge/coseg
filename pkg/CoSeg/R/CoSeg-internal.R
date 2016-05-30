@@ -319,7 +319,7 @@ function(age, sex, geno, frequencies.df){
 	#this function uses ped$female vec which is 1 if the individual is female and 0 otherwise
 	#this function adds degree information to the pedigree
 	if(length(ped$degree)>0){
-		print("Degree is already present. Overwriting degree information")
+		#print("Degree is already present. Overwriting degree information")
 	}
 
 	#start with first row individual.  Assign degree 1.  Assign all offspring degree 2 and parents degree 0 if any.  Move to all newly assigned individuals and assign degrees that are either +-1 of the current degree of the individual based off parent/offspring relationship.  In the end, add a constant to the degree vector to make the lowest degree 1.
@@ -354,11 +354,13 @@ function(age, sex, geno, frequencies.df){
 
 
 .BRCA.penetrance.prob=function(genotype,cancer,age,gender,
-	fBRCA=c(52.3,13.89,0.821),mBRCA=c(63.48,12.24,0.021), #John's Estimate
+	fBRCA=c(52.3,13.89,0.821),mBRCA=c(63.48,12.24,0.021), #John's BRCA1 Estimate
+  #fBRCA=c(59.83,11.82,0.7396),mBRCA=c(61.31,11.96,0.5851), #John's LS Estimate
 	#fBRCA=c(53,16.5,0.96),mBRCA=c(94.5,20,0.0025), #BRCA1 Mohammadi
 	#fBRCA=c(53.9,16.5,0.96),mBRCA=c(94.5,20,0.0025), #BRCA1 Jonker
 	#fBRCA=c(58.5,13.8,1),mBRCA=c(58.5,13.8,0.15), #BRCA2 Mohammadi
-	fNorm=c(64.02,10.38,0.091),mNorm=c(67.29,9.73,0.0015)){ #John's Estimate
+	fNorm=c(64.02,10.38,0.091),mNorm=c(67.29,9.73,0.0015)){ #John's BRCA1 Estimate
+  #fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's LS Estimate
 	#fNorm=c(72,20,0.15),mNorm=c(94.5,20,0.0025)){ #Mohammadi listed
 	#fNorm=c(66.3,14.9,0.08),mNorm=c(94.5,20,0.0025)){ #Jonker model 1
 	#fNorm=c(72,16.5,0.10),mNorm=c(94.5,20,0.0025)){ #Jonker model 2
@@ -432,11 +434,45 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	}
 	observed.vector=array(FALSE,dim=c(number.people))
 	observed.vector[ped$genotype!=2]=TRUE
-	#print(c("observed.vector", observed.vector))
+	
+	#Here we modify the observed vector and the genotype vector so that people who are married to carriers are known non-carriers (since there can be only one founder in this model.)
+	#as a first pass, we go through each individual and make sure that if one of their parents is a carrier, the other is a non-carrier
+	for(i in 1:number.people){
+		if(ped$momrow[i]>0){ #person is not a founder
+			if(observed.vector[ped$momrow[i]]+observed.vector[ped$dadrow[i]]==1){ #This means that exactly one parent is observed.
+				if(ped$genotype[ped$momrow[i]]==1){
+					ped$genotype[ped$dadrow[i]]=0 
+					observed.vector[ped$dadrow[i]]=TRUE 
+				} else if(ped$genotype[ped$dadrow[i]]==1){
+					ped$genotype[ped$momrow[i]]=0 
+					observed.vector[ped$momrow[i]]=TRUE 
+				}
+			}
+		}
+	}
+	
+	#Here we modify the observed vector and the genotype vector so that if a carrier has a non-carrier parent then the other parent is a carrier.
+	for(i in 1:number.people){
+		if(ped$genotype[i]==1 & ped$momrow[i]>0){ #non-founder carrier
+			if(observed.vector[ped$momrow[i]]+observed.vector[ped$dadrow[i]]==1){ #This means that exactly one parent is observed.
+				if(ped$genotype[ped$momrow[i]]==1){
+					ped$genotype[ped$dadrow[i]]=0 
+					observed.vector[ped$dadrow[i]]=TRUE 
+				}else if(ped$genotype[ped$momrow[i]]==0){
+					ped$genotype[ped$dadrow[i]]=1 
+					observed.vector[ped$dadrow[i]]=TRUE 
+				}else if(ped$genotype[ped$dadrow[i]]==1){
+					ped$genotype[ped$momrow[i]]=0 
+					observed.vector[ped$momrow[i]]=TRUE 
+				}else { #(ped$genotype[ped$dadrow[i]]==0)
+					ped$genotype[ped$momrow[i]]=1 
+					observed.vector[ped$momrow[i]]=TRUE 
+				}
+			}
+		}	
+	}
 
-	# if(length(ped$degree)==0){
-		# ped=add.pedigree.degree(ped)
-	# }
+	
 	#add degree information regardless...
 	ped=.add.pedigree.degree(ped)
 
@@ -548,7 +584,6 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	number.proband.founders=sum(temp.vec)
 	founder.cols=which(temp.vec,arr.ind=TRUE)#note that these are not the id's but rather the col numbers(which could be the same as id)
 
-	#Here we calculate the number of meioses that separate all of the observed individuals for use in numerator.genotype.probability later on
 	#find the founder of all the observed carriers which is the intersection of all of their ancestors.  If there are multiple, pick the first one.  Then find the lineages going from each observed carrier to the founder to find the minimal pedigree containing all the observed values.  Then we need to chop off the top of the tree
 
 	#finding the common ancestral founder
@@ -567,44 +602,69 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 
 	#Assuming the temp.founder is the true founder, find all lineages from the observed values to that founder and combine them to make the minimal pedigree containing all the observed carriers.
 	temp.vec=ancestor.descendent.array[,temp.founder]
-	minimal.observed.pedigree=array(FALSE,dim=c(number.people))
+	minimal.affected.carrier.pedigree=array(FALSE,dim=c(number.people))
+	minimal.carrier.pedigree=array(FALSE,dim=c(number.people))
 	for(i in 1:number.people){
-		#if(ped$genotype[i]==1 & affected.boolean[i]){!no need for this
 		if(ped$genotype[i]==1){
 			temp.lineage=ancestor.descendent.array[i,]&temp.vec
-			minimal.observed.pedigree=minimal.observed.pedigree|temp.lineage
+			minimal.carrier.pedigree=minimal.carrier.pedigree|temp.lineage
+			if(affected.boolean[i]){ 
+				minimal.affected.carrier.pedigree=minimal.affected.carrier.pedigree|temp.lineage
+			}
 		}
 	}
 
 	#start from the founder and check if he has 2 offspring that are carriers or if he is an observed carrier.  If not, cut him off, find his carrier offspring and check them.  Repeat until offspring either has 2 carriers or is observed.
 	current.top=temp.founder
-	while(current.top>0 & !observed.vector[current.top]){
-		#store current.top's direct descendents.
-		temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
-		#set NA's in temp.vec to FALSE
-		temp.vec[is.na(temp.vec)]=FALSE
-		temp.int=sum(temp.vec&minimal.observed.pedigree)
-		# print(temp.vec)
-		# print(minimal.observed.pedigree)
-		# print(temp.int)
-		if(temp.int>1){#done... no need to continue.  The top of the tree is ok
-			current.top=0
-		}else if(temp.int==1){
-			minimal.observed.pedigree[current.top]=FALSE
-			current.top=which(temp.vec&minimal.observed.pedigree)[1]
-		}else{
-			print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
-			return()
+	if(current.top>0){
+		while(current.top>0 & !observed.vector[current.top]){
+			#store current.top's direct descendents.
+			temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
+			#set NA's in temp.vec to FALSE
+			temp.vec[is.na(temp.vec)]=FALSE
+			temp.int=sum(temp.vec&minimal.affected.carrier.pedigree)
+			if(temp.int>1){#done... no need to continue.  The top of the tree is ok
+				current.top=0
+			break
+			}else if(temp.int==1){
+				minimal.affected.carrier.pedigree[current.top]=FALSE
+				current.top=which(temp.vec&minimal.affected.carrier.pedigree)[1]
+			}else{
+				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
+				return()
+			}
+		}
+	}
+	#Repeat for minimal.carrier.pedigree
+	current.top=temp.founder
+	if(current.top>0){
+		while(current.top>0 & !observed.vector[current.top]){
+			#store current.top's direct descendents.
+			temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
+			#set NA's in temp.vec to FALSE
+			temp.vec[is.na(temp.vec)]=FALSE
+			temp.int=sum(temp.vec&minimal.carrier.pedigree)
+			if(temp.int>1){#done... no need to continue.  The top of the tree is ok
+				minimal.carrier.pedigree[current.top]=FALSE #remove the top because this one is unsure...
+				current.top=0
+			break
+			}else if(temp.int==1){
+				minimal.carrier.pedigree[current.top]=FALSE
+				current.top=which(temp.vec&minimal.carrier.pedigree)[1]
+			}else{
+				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
+				return()
+			}
 		}
 	}
 
 	likelihood.ratio=0
-	observed.separating.meioses=sum(minimal.observed.pedigree)-1
-	print(c("observed.separating.meioses",observed.separating.meioses))
+	observed.separating.meioses=sum(minimal.affected.carrier.pedigree)-1
+	#print(c("observed.separating.meioses",observed.separating.meioses))
 	#R stores ints as 32-bits.  This gives a max value of about 2 billion.  We need a larger version so we store it as 2 32-bits integer.
 	number.genotypes.vec=array(0,dim=c(2))
 
-	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.observed.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
+	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.carrier.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
 
 	number.genotypes=lr.results$NumberGenotypesVec[1]*2147483647+lr.results$NumberGenotypesVec[2]
 	#return(list(likelihood.ratio=likelihood.ratio,reordering=order.vec,separating.meioses=observed.separating.meioses))

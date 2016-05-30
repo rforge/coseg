@@ -13,11 +13,10 @@ module constants
 	real(kind=dble_prec), parameter :: one = 1.00000000
 	real(kind=dble_prec), parameter :: two = 2.00000000
 	real(kind=dble_prec), parameter :: ten = 10.0000000
-!	real(kind=dble_prec), parameter :: root2=sqrt(2)
+	!	real(kind=dble_prec), parameter :: root2=sqrt(2)
 	real(kind=dble_prec), parameter :: eps=1.e-10
 	real(kind=dble_prec), parameter :: delta=one/16.000!1.e-2
 	real(kind=dble_prec), parameter :: pseudo_count=1.0000/10.0000
-
 
 
 end module constants
@@ -245,8 +244,8 @@ end module rprint
 
 
 subroutine likelihood_ratio_main(NumberPeople, NumberProbandFounders, &
-  ObservedSeparatingMeioses, NumberOffspring, PedGenotype, FounderCols, &
-  NumberGenotypesVec, AllPhenotypeProbabilities, ProbandAncestors,  &
+	ObservedSeparatingMeioses, NumberOffspring, PedGenotype, FounderCols, &
+	NumberGenotypesVec, AllPhenotypeProbabilities, ProbandAncestors,  &
 	ObservedVector, AncestorDescendentArray, MomRow, DadRow, &
 	MinimalObservedPedigree, LikelihoodRatio)
   !the general idea here is that we are finding all possible genotype.  The way we do this is we start with the left most variable genotype(lowest number) and fix it to 0.  This in turn fixes a lot of the genotype to the right(higher numbers).  To keep track of these, we set status.vector to be an integer vector where 0 means the genotype does not need to be modified anymore, otherwise it shows the number of the genotype that currently fixed it or number.people+1 if it hasn't been touched yet.  We then go right(increasing number) to the next variable genotype and fix it to 0, fix those that become fixed because of that, and modify status.vector accordingly.  Once status.vector is completely fixed, we have a viable genotype.  We now save the genotype*phenotype probabilities for that genotype for the numerator and denominator of the likelihood ratio.  We then proceed back left left(decreasing number) to the last fixed genotype and fix it to 1 and see if this fixes anything to the right(though it shouldn't).
@@ -263,7 +262,7 @@ integer, dimension(NumberProbandFounders) :: FounderCols
 integer, dimension(2) :: NumberGenotypesVec
 real(kind=dble_prec), dimension(2,NumberPeople) :: AllPhenotypeProbabilities
 logical, dimension(NumberPeople) :: MinimalObservedPedigree, ProbandAncestors, &
-		ObservedVector
+	ObservedVector
 logical, dimension(NumberPeople,NumberPeople) :: AncestorDescendentArray
 
 !outputs
@@ -274,13 +273,13 @@ integer :: i, j, k, counter, int1, int2
 integer(kind=8) :: number_genotypes_found
 integer, dimension(NumberPeople) :: status_vector, temp_changes
 logical, dimension(NumberPeople) :: founder_descendents, lineage_genotype, &
-  variable_genotype, temp_genotype, logical_vec
+  variable_genotype, temp_genotype, logical_vec, implied_carriers
 logical :: logical1
 real(kind=dble_prec) :: phenotype_probability, check_num_genotype_probability, &
   check_den_genotype_probability, denominator_genotype_probability, &
-  numerator_genotype_probability, lr_denominator, lr_numerator
+  numerator_genotype_probability, lr_denominator, lr_numerator, tolerance
 real(kind=dble_prec), dimension(NumberPeople) :: phenotype_probabilities_ratios, &
-	powers_of_two
+	negative_powers_of_two
 
 
 
@@ -294,7 +293,7 @@ check_num_genotype_probability=0
 
 !storing all useful negative powers of two for analysis
 do i=1,NumberPeople
-	powers_of_two(i)=2.**(-i)
+	negative_powers_of_two(i)=2.**(-i)
 end do
 
 do i=1,NumberProbandFounders
@@ -309,6 +308,13 @@ do i=1,NumberProbandFounders
   !these genotype are the only ones that can be 0 or 1
   variable_genotype=founder_descendents .and. .not.lineage_genotype
 
+	!A vector of the union of the intersection of the current founder's descendents and the all known carriers ancestors
+	implied_carriers=.FALSE.
+	do j=1,NumberPeople
+		if(PedGenotype(j).eq.1) then
+			implied_carriers=implied_carriers .or. (founder_descendents .and. AncestorDescendentArray(j,:))
+		end if
+	end do
   !Here we go need to go through variable.genotype and starting from the one end set it to 0 or 1 and fix all the genotype affected by that choice, fix the next unfixed one, and so on until all are fixed.  We then work backwards to get all the possible choices.
   !Since I'm starting from 1, assume descendents outnumber ancestors meaning that being a non-carrier would fix more genotype than being a carrier.  Note this assumption shouldn't affect the final result.  In other words, start assuming j is a non-carrier... temp.genotype[j]=0
   temp_genotype=lineage_genotype !temp.genotype is a boolean vector that holds the current individual's carrier status.
@@ -364,7 +370,7 @@ do i=1,NumberProbandFounders
     end do
 
 		if(int1>0 .and. int1<=NumberPeople) then
-			denominator_genotype_probability=powers_of_two(int1)
+			denominator_genotype_probability=negative_powers_of_two(int1)
 		else
     	denominator_genotype_probability=2.**(-int1)
 		end if
@@ -372,9 +378,6 @@ do i=1,NumberProbandFounders
     check_den_genotype_probability=check_den_genotype_probability+denominator_genotype_probability
 
     !numerator is updated if the current genotype vector matches the observed genotype
-		! call intpr("temp_genotype", -1, temp_genotype, size(temp_genotype))
-		! call intpr("PedGenotype", -1, PedGenotype, size(PedGenotype))
-		! call intpr("ObservedVector", -1, ObservedVector, size(ObservedVector))
     logical1=.true.
     do j=1,NumberPeople
       if(ObservedVector(j)) then
@@ -398,10 +401,10 @@ do i=1,NumberProbandFounders
 
 				!Here we count the number of unknown genotype people who have a carrier parent
 				!note that implied genotypes are counted as known (Thus MinimalObservedPedigree is used)
-				int2=0
+				int2=1
 		    do j=1,NumberPeople
 					if(.not.ObservedVector(j) .and. .not.MinimalObservedPedigree(j)) then !check his parents if one of them is a carrier
-						if(MomRow(j)>0 .and. DadRow(j)>0) then
+						if(MomRow(j)>0 .and. DadRow(j)>0) then !check if the person is a founder
 							if(temp_genotype(MomRow(j)) .or. temp_genotype(DadRow(j))) then
 			        	int2=int2+1
 							end if
@@ -410,7 +413,7 @@ do i=1,NumberProbandFounders
 		    end do
 
 				if(int2>0 .and. int2<=NumberPeople) then
-				numerator_genotype_probability=powers_of_two(int2)
+					numerator_genotype_probability=negative_powers_of_two(int2)
 				! call dblepr("1st Numerator check: ",-1,numerator_genotype_probability,1)
 			!else if(ObservedSeparatingMeioses-int1>0) then
       	!numerator_genotype_probability=2.**(-ObservedSeparatingMeioses+int1)
@@ -467,15 +470,17 @@ LikelihoodRatio=lr_numerator/lr_denominator
 NumberGenotypesVec(1)=number_genotypes_found/2147483647
 NumberGenotypesVec(2)=mod(number_genotypes_found,2147483647)
 
-if(check_num_genotype_probability<1-1E-6) then
+tolerance=1E-6
+
+if(check_num_genotype_probability<1-tolerance .OR. check_num_genotype_probability>1+tolerance) then
   call dblepr("Error: Total numerator genotype probability(Should be 1): ",-1,check_num_genotype_probability,1)
 end if
-if(check_den_genotype_probability<1-1E-6) then
+if(check_den_genotype_probability<1-tolerance .OR. check_den_genotype_probability>1+tolerance) then
   call dblepr("Error: Total denominator genotype probability(Should be 1): ",-1, check_den_genotype_probability,1)
 end if
 
-call intpr("Number of genotypes found: ",-1,number_genotypes_found,1)
-call dblepr("Likelihood ratio: ",-1,LikelihoodRatio,1)
+!call intpr("Number of genotypes found: ",-1,number_genotypes_found,1)
+!call dblepr("Likelihood ratio: ",-1,LikelihoodRatio,1)
 
 
 end subroutine likelihood_ratio_main
