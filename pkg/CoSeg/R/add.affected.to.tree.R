@@ -1,17 +1,22 @@
 add.affected.to.tree <-
-function(tree.f,frequencies.df=NULL,g=4){
+function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
   #frequencies.df is a data.frame with columns age(int 1-100), cancer.type(char),female(bool), carrier(bool), and frequencies(real).
   if(is.null(tree.f$famid)){
     tree.f$famid=1
   }
-  if(length(unique(tree.f$famid)>1)){
+  if(length(unique(tree.f$famid))>1){
     stop("Error: add.affected.to.tree only works on single trees")
   }
   if(is.null(frequencies.df)){
     print("No frequencies given.  Using BRCA1frequencies.df")
     frequencies.df=BRCA1frequencies.df
   }
-  risk<-p.risk<-risk.f<-NULL
+
+  if(benign.bool){
+    print("Simulating a benign variant.")
+  }
+
+  risk<-p.risk<-risk.f<-tree.f2<-NULL
   size <- nrow(tree.f)
   progress <- 0
 
@@ -32,7 +37,13 @@ function(tree.f,frequencies.df=NULL,g=4){
       #risk <- criskS(tree.f$age[i], tree.f$female[i], tree.f$geno[i])   # SEER breast ovarian(population risk, variant is benign)
       #risk <- criskLS(tree.f$age[i], tree.f$female[i], tree.f$geno[i])  # MLH1, MSH2
       #risk <- criskLSS(tree.f$age[i], tree.f$female[i], tree.f$geno[i])  #SEER colon, endometrial, and minor LS tumors
-      risk <- .crisk(tree.f$age[i], tree.f$female[i], tree.f$geno[i], frequencies.df)  # general risk function requiring frequencies.df
+
+      #this allows for simulating a benign variant by setting all individuals to non-carriers.
+      if(benign.bool){
+        risk <- .crisk(tree.f$age[i], tree.f$female[i], 0, frequencies.df)  # general risk function requiring frequencies.df
+      }else{
+        risk <- .crisk(tree.f$age[i], tree.f$female[i], tree.f$geno[i], frequencies.df)  # general risk function requiring frequencies.df
+      }
 
     p.risk[i]<-list(risk)
     }
@@ -82,10 +93,14 @@ function(tree.f,frequencies.df=NULL,g=4){
     print(noproband)
 
     counter=counter+1
-    if(min(tree.f2$proband)==0 | counter>500){
+    if(max(tree.f2$proband)==1 | counter>500){
       no.proband.logical=FALSE
     }
-    print(c("add.affected.to.tree counter: ",counter))
+    if(counter %% 20 == 0){
+      print(c("add.affected.to.tree counter: ",counter))
+    }
+    print(c("min(tree.f2$proband):",min(tree.f2$proband)))
+    print(c("tree.f2$proband:",tree.f2$proband))
   }
 
   if(counter>500){

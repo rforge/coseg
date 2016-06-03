@@ -1,5 +1,5 @@
 make.affected.trees <-
-function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL){
+function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL,benign.bool=FALSE){
   #create seen individuals 25 years or older ,
   if(is.null(frequencies.df)){
     print("No frequencies given.  Using BRCA1frequencies.df")
@@ -9,6 +9,7 @@ function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL){
     print("No demographics given.  Using USDemographics.df")
     demographics.df=USDemographics.df
   }
+
   tree.f <- age.prob <- NULL
   while(length(age.prob)<n){
   	age.temp <- rsnorm(1, mean = 51.49, sd = 10, xi =0.8)   #skewed normal distribution for age of seed individual from individuals tested for hereditary cancer at UW
@@ -21,7 +22,7 @@ function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL){
     print(i)
     t.tree <- make.tree(g, gdown, seed.age=age.prob[i], demographics.df)
     t.tree <- cbind(famid = i, t.tree)
-    a.tree <- add.affected.to.tree(t.tree,frequencies.df,g=g)
+    a.tree <- add.affected.to.tree(t.tree,frequencies.df,g=g,benign.bool=benign.bool)
     tree.f <- rbind(tree.f, a.tree)
     #print(tree)
   }
