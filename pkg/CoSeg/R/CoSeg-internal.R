@@ -47,6 +47,7 @@ function(yrborn, sex, demographics.df=NULL){
   deg.1.demog<-list("age.mar"=ifelse(is.null(age.mar)==FALSE,round(rsnorm(1, age.mar, sd = 2.5, xi = 1.5),3),NA ), "age.death"=ifelse(is.null(age.mar)==FALSE,round(rsnorm(1, age.death, sd = (age.death/6), xi = .8),3),NA ), "offs"=ifelse(is.null(offs)==FALSE,rpois(1, lambda=abs(offs)),NA))
   return(deg.1.demog)
 }
+
 .demog <-
 function(offnum, aveage, sdage){
   n<-NULL
@@ -60,6 +61,7 @@ function(offnum, aveage, sdage){
   ped<-list("id"=id, "age"=age, "female"=female)
 return(ped)
 }
+
 .demog.2 <-
 function(offnum, y.birth, demographics.df=NULL){
   age<-age.temp<-dead<-y.born<-NULL
@@ -97,6 +99,7 @@ function(offnum, y.birth, demographics.df=NULL){
   #print(ped)
 return(ped)
 }
+
 .genotype <-
 function(mom, dad, ped){
   fromdad<-frommom<-NULL
@@ -127,22 +130,23 @@ function(mom, dad, ped){
   }
 return(ped)
 }
+
 .grow.p <-
 function(prev.dat,demographics.df=NULL){
   deg.num <- max(prev.dat$degree)
   next.deg <- deg.num+1
   tcur.deg <- subset(prev.dat, prev.dat$degree==deg.num)
-  i<- toffs<- deg<-fem<-mal<-dad<-mom<-momid<-dadid<-geno<-female<-id<-dead <-y.born<-age<-ids<-temp<-next.dat<- NULL
+  i<- toffs<- deg<-fem<-mal<-dad<-mom<-momid<-dadid<-geno<-female<-id<-dead <-y.born<-age<- age.temp<-ids<-temp<-next.dat<- NULL
   tids <- tcur.deg$id
   kids <- 0
-   while(kids <1){   ## while loop to make sure there is at least one person with offspring
+  while(kids <1){   ## while loop to make sure there is at least one person with offspring
     for (i in 1:nrow(tcur.deg)){
-    toffs[i] <- .demog.nat(tcur.deg[i,]$y.born, 1,demographics.df)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
-    #toffs[i] <- .demog.nat.china(tcur.deg[i,]$y.born, 1)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
-  	  }
-  	    	#print(toffs)
-  	kids <- sum(toffs,na.rm = TRUE)
-  	}
+      toffs[i] <- .demog.nat(tcur.deg[i,]$y.born, 1,demographics.df)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
+      #toffs[i] <- .demog.nat.china(tcur.deg[i,]$y.born, 1)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
+    }
+    #print(toffs)
+    kids <- sum(toffs,na.rm = TRUE)
+  }
   cur.deg.1 <- cbind(tcur.deg, toffs)
   cur.deg <- subset(cur.deg.1, cur.deg.1$toffs > 0) ## do not generate spouse if no offspring
   toffs <- cur.deg$toffs
@@ -150,67 +154,161 @@ function(prev.dat,demographics.df=NULL){
   cur.deg$toffs <- NULL
   ids <- cur.deg$id  ## get id for individuals with offspring
   for (i in 1:nrow(cur.deg)){
-          ###generate spouse
-          geno[i] <- 0 # these should all be 0 no carriers marry in # abs(prev.dat[prev.dat$id==car[i],]$geno-1)# 0 since choose the carrier
-          female[i]<-abs(cur.deg[cur.deg$id==ids[i],]$female-1) # gender opposite
-          if(female[i] == 0){
-            y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)-2, 3),3)  # choose age, men tend to be older than the women they marry
-           age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)-2, 3),3)  #choose age at death women usually outlive their spouses
-          }
-         if(female[i] == 1){
-           y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)+2, 3),3)  # choose age, men tend to be older than the women they marry
-           age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)+2, 3),3)  #choose age at death women usually outlive their spouses
-           }
-           id[i]<-cur.deg[cur.deg$id==ids[i],]$id+0.1  ## id of spouse is id of carrier-mate + 0.1
-           dead[i]<-1
-              if (round(2010-y.born[i]) < round(rnorm(1, 81.1, 5),3)){ dead[i]<-0}
+    ###generate spouse
+    geno[i] <- 0 # these should all be 0 no carriers marry in # abs(prev.dat[prev.dat$id==car[i],]$geno-1)# 0 since choose the carrier
+    female[i]<-abs(cur.deg[cur.deg$id==ids[i],]$female-1) # gender opposite
+    if(female[i] == 0){
+      y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)-2, 3),3)  # choose age, men tend to be older than the women they marry
+     age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)-2, 3),3)  #choose age at death women usually outlive their spouses
+    }
+    if(female[i] == 1){
+      y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)+2, 3),3)  # choose age, men tend to be older than the women they marry
+      age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)+2, 3),3)  #choose age at death women usually outlive their spouses
+    }
+    id[i]<-cur.deg[cur.deg$id==ids[i],]$id+0.1  ## id of spouse is id of carrier-mate +0.1
+    #dead[i]<-1
+    #   if (round(2010-y.born[i]) < round(rnorm(1, 81.1, 5),3)){ dead[i]<-0}
+    # code to fix spouse death status and correct age to current age or age at death
+    age.temp[i]<-round(2010-y.born[i])
+    age[i]<-.demog.nat(y.born[i],female[i],demographics.df)$age.death
+    #age[i]<-.demog.nat.china(y.born[i],female[i])$age.death
+    dead[i]<-1
+    if (age.temp[i]< round(rnorm(1, 81.1, 5),3)){ #took the older age
+      age[i]<-age.temp[i]
+      dead[i]<-0
+    }
 
-           in.2 <- data.frame(list("degree"=deg.num, "momid"=NA, "dadid"=NA, "id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead, "geno"=geno))
+    in.2 <- data.frame(list("degree"=deg.num, "momid"=NA, "dadid"=NA, "id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead, "geno"=geno))
 
-        ##### generate offspring
-           in.1 <- cur.deg
-           temp<-list("degree"=next.deg, "momid"=NA, "dadid"=NA, "id"=NA, "age"=NA, "female"=NA,"y.born"=NA, "dead"=NA, "geno"=NA)
-            if (in.1[in.1$id==ids[i],]$female==1){  # if female parent from the initial pedigree
-               momid[i]<-in.1[in.1$id==ids[i],]$id
-               dadid[i]<-in.2$id[i]
-               fem[i]<-match(1, in.1[in.1$id==ids[i],]$female)  #determine mother and father genotypes
-               mal[i]<-match(0, in.2$female[i])
-               dad[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
-               mom[i] <- in.2$geno[mal[i]]
-               toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-               #toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat.china(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-               temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
-               temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
-               temp$momid<-momid[i]
-               temp$dadid<-dadid[i]
-               temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
-               temp<-as.data.frame(temp)
-               }else if(in.1[in.1$id==ids[i],]$female==0){
-               momid[i]<-in.2$id[i]
-               dadid[i]<-in.1[in.1$id==ids[i],]$id
-               fem[i]<-match(1, in.2$female[i])  #determine mother father genotypes
-               mal[i]<-match(0, in.1[in.1$id==ids[i],]$female)
-               dad[i] <- in.2$geno[mal[i]]
-               mom[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
-               toffyb <-  (in.2$y.born[i]) + (.demog.nat(in.2$y.born[i],1,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-               #toffyb <-  (in.2$y.born[i]) + (.demog.nat.china(in.2$y.born[i],1)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-               temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
-               temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
-               temp$momid<-momid[i]
-               temp$dadid<-dadid[i]
-               temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
-               temp<-as.data.frame(temp)
-               }
+    ##### generate offspring
+    in.1 <- cur.deg
+    temp<-list("degree"=next.deg, "momid"=NA, "dadid"=NA, "id"=NA, "age"=NA, "female"=NA,"y.born"=NA, "dead"=NA, "geno"=NA)
+    if (in.1[in.1$id==ids[i],]$female==1){  # if female parent from the initial pedigree
+      momid[i]<-in.1[in.1$id==ids[i],]$id
+      dadid[i]<-in.2$id[i]
+      fem[i]<-match(1, in.1[in.1$id==ids[i],]$female)  #determine mother and father genotypes
+      mal[i]<-match(0, in.2$female[i])
+      dad[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
+      mom[i] <- in.2$geno[mal[i]]
+      toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+      #toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat.china(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+      temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
+      temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
+      temp$momid<-momid[i]
+      temp$dadid<-dadid[i]
+      temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
+      temp<-as.data.frame(temp)
+    }else if(in.1[in.1$id==ids[i],]$female==0){
+      momid[i]<-in.2$id[i]
+      dadid[i]<-in.1[in.1$id==ids[i],]$id
+      fem[i]<-match(1, in.2$female[i])  #determine mother father genotypes
+      mal[i]<-match(0, in.1[in.1$id==ids[i],]$female)
+      dad[i] <- in.2$geno[mal[i]]
+      mom[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
+      toffyb <-  (in.2$y.born[i]) + (.demog.nat(in.2$y.born[i],1,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+      #toffyb <-  (in.2$y.born[i]) + (.demog.nat.china(in.2$y.born[i],1)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+      temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
+      temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
+      temp$momid<-momid[i]
+      temp$dadid<-dadid[i]
+      temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
+      temp<-as.data.frame(temp)
+    }
 
-             next.dat<- rbind(next.dat,temp)
+    next.dat<- rbind(next.dat,temp)
 
-         }
-      ### can we remove the NA from the
-      next.dat$id <- 1:length(next.dat$id)
-      next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
-      next.dat.1<-rbind(prev.dat,in.2,next.dat)
+  }
+### can we remove the NA from the
+next.dat$id <- 1:length(next.dat$id)
+next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
+next.dat.1<-rbind(prev.dat,in.2,next.dat)
 return(next.dat.1)
 }
+# .grow.p <-
+# function(prev.dat,demographics.df=NULL){
+#   deg.num <- max(prev.dat$degree)
+#   next.deg <- deg.num+1
+#   tcur.deg <- subset(prev.dat, prev.dat$degree==deg.num)
+#   i<- toffs<- deg<-fem<-mal<-dad<-mom<-momid<-dadid<-geno<-female<-id<-dead <-y.born<-age<-ids<-temp<-next.dat<- NULL
+#   tids <- tcur.deg$id
+#   kids <- 0
+#    while(kids <1){   ## while loop to make sure there is at least one person with offspring
+#     for (i in 1:nrow(tcur.deg)){
+#     toffs[i] <- .demog.nat(tcur.deg[i,]$y.born, 1,demographics.df)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
+#     #toffs[i] <- .demog.nat.china(tcur.deg[i,]$y.born, 1)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
+#   	  }
+#   	    	#print(toffs)
+#   	kids <- sum(toffs,na.rm = TRUE)
+#   	}
+#   cur.deg.1 <- cbind(tcur.deg, toffs)
+#   cur.deg <- subset(cur.deg.1, cur.deg.1$toffs > 0) ## do not generate spouse if no offspring
+#   toffs <- cur.deg$toffs
+#   #print(toffs)
+#   cur.deg$toffs <- NULL
+#   ids <- cur.deg$id  ## get id for individuals with offspring
+#   for (i in 1:nrow(cur.deg)){
+#           ###generate spouse
+#           geno[i] <- 0 # these should all be 0 no carriers marry in # abs(prev.dat[prev.dat$id==car[i],]$geno-1)# 0 since choose the carrier
+#           female[i]<-abs(cur.deg[cur.deg$id==ids[i],]$female-1) # gender opposite
+#           if(female[i] == 0){
+#             y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)-2, 3),3)  # choose age, men tend to be older than the women they marry
+#            age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)-2, 3),3)  #choose age at death women usually outlive their spouses
+#           }
+#          if(female[i] == 1){
+#            y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)+2, 3),3)  # choose age, men tend to be older than the women they marry
+#            age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)+2, 3),3)  #choose age at death women usually outlive their spouses
+#            }
+#            id[i]<-cur.deg[cur.deg$id==ids[i],]$id+0.1  ## id of spouse is id of carrier-mate + 0.1
+#            dead[i]<-1
+#               if (round(2010-y.born[i]) < round(rnorm(1, 81.1, 5),3)){ dead[i]<-0}
+#
+#            in.2 <- data.frame(list("degree"=deg.num, "momid"=NA, "dadid"=NA, "id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead, "geno"=geno))
+#
+#         ##### generate offspring
+#            in.1 <- cur.deg
+#            temp<-list("degree"=next.deg, "momid"=NA, "dadid"=NA, "id"=NA, "age"=NA, "female"=NA,"y.born"=NA, "dead"=NA, "geno"=NA)
+#             if (in.1[in.1$id==ids[i],]$female==1){  # if female parent from the initial pedigree
+#                momid[i]<-in.1[in.1$id==ids[i],]$id
+#                dadid[i]<-in.2$id[i]
+#                fem[i]<-match(1, in.1[in.1$id==ids[i],]$female)  #determine mother and father genotypes
+#                mal[i]<-match(0, in.2$female[i])
+#                dad[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
+#                mom[i] <- in.2$geno[mal[i]]
+#                toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+#                #toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat.china(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+#                temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
+#                temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
+#                temp$momid<-momid[i]
+#                temp$dadid<-dadid[i]
+#                temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
+#                temp<-as.data.frame(temp)
+#                }else if(in.1[in.1$id==ids[i],]$female==0){
+#                momid[i]<-in.2$id[i]
+#                dadid[i]<-in.1[in.1$id==ids[i],]$id
+#                fem[i]<-match(1, in.2$female[i])  #determine mother father genotypes
+#                mal[i]<-match(0, in.1[in.1$id==ids[i],]$female)
+#                dad[i] <- in.2$geno[mal[i]]
+#                mom[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
+#                toffyb <-  (in.2$y.born[i]) + (.demog.nat(in.2$y.born[i],1,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+#                #toffyb <-  (in.2$y.born[i]) + (.demog.nat.china(in.2$y.born[i],1)$age.mar) + 5 ###children clustered around 5 years after age of marriage
+#                temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
+#                temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
+#                temp$momid<-momid[i]
+#                temp$dadid<-dadid[i]
+#                temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
+#                temp<-as.data.frame(temp)
+#                }
+#
+#              next.dat<- rbind(next.dat,temp)
+#
+#          }
+#       ### can we remove the NA from the
+#       next.dat$id <- 1:length(next.dat$id)
+#       next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
+#       next.dat.1<-rbind(prev.dat,in.2,next.dat)
+# return(next.dat.1)
+# }
+
 .risktoinci <-
 function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cumulative risk at those points
 	fit <- lm( y~ns(x, spli) )
@@ -227,6 +325,7 @@ function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cum
 		}
 	return(annual)
 }
+
 .crisk <-
 function(age, sex, geno, frequencies.df){
   cancer.names=unique(frequencies.df$cancer.type)
@@ -354,13 +453,13 @@ function(age, sex, geno, frequencies.df){
 
 
 .BRCA.penetrance.prob=function(genotype,cancer,age,gender,
-	fBRCA=c(52.3,13.89,0.821),mBRCA=c(63.48,12.24,0.021), #John's BRCA1 Estimate
-  #fBRCA=c(59.83,11.82,0.7396),mBRCA=c(61.31,11.96,0.5851), #John's LS Estimate
+	#fBRCA=c(52.3,13.89,0.821),mBRCA=c(63.48,12.24,0.021), #John's BRCA1 Estimate
+  fBRCA=c(59.83,11.82,0.7396),mBRCA=c(61.31,11.96,0.5851), #John's LS Estimate
 	#fBRCA=c(53,16.5,0.96),mBRCA=c(94.5,20,0.0025), #BRCA1 Mohammadi
 	#fBRCA=c(53.9,16.5,0.96),mBRCA=c(94.5,20,0.0025), #BRCA1 Jonker
 	#fBRCA=c(58.5,13.8,1),mBRCA=c(58.5,13.8,0.15), #BRCA2 Mohammadi
-	fNorm=c(64.02,10.38,0.091),mNorm=c(67.29,9.73,0.0015)){ #John's BRCA1 Estimate
-  #fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's LS Estimate
+	#fNorm=c(64.02,10.38,0.091),mNorm=c(67.29,9.73,0.0015)){ #John's BRCA1 Estimate
+  fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's LS Estimate
 	#fNorm=c(72,20,0.15),mNorm=c(94.5,20,0.0025)){ #Mohammadi listed
 	#fNorm=c(66.3,14.9,0.08),mNorm=c(94.5,20,0.0025)){ #Jonker model 1
 	#fNorm=c(72,16.5,0.10),mNorm=c(94.5,20,0.0025)){ #Jonker model 2
@@ -434,45 +533,48 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	}
 	observed.vector=array(FALSE,dim=c(number.people))
 	observed.vector[ped$genotype!=2]=TRUE
-	
+
+	#We save this here for meioses counting
+	original.observed.vector=observed.vector
+
 	#Here we modify the observed vector and the genotype vector so that people who are married to carriers are known non-carriers (since there can be only one founder in this model.)
 	#as a first pass, we go through each individual and make sure that if one of their parents is a carrier, the other is a non-carrier
 	for(i in 1:number.people){
 		if(ped$momrow[i]>0){ #person is not a founder
 			if(observed.vector[ped$momrow[i]]+observed.vector[ped$dadrow[i]]==1){ #This means that exactly one parent is observed.
 				if(ped$genotype[ped$momrow[i]]==1){
-					ped$genotype[ped$dadrow[i]]=0 
-					observed.vector[ped$dadrow[i]]=TRUE 
+					ped$genotype[ped$dadrow[i]]=0
+					observed.vector[ped$dadrow[i]]=TRUE
 				} else if(ped$genotype[ped$dadrow[i]]==1){
-					ped$genotype[ped$momrow[i]]=0 
-					observed.vector[ped$momrow[i]]=TRUE 
+					ped$genotype[ped$momrow[i]]=0
+					observed.vector[ped$momrow[i]]=TRUE
 				}
 			}
 		}
 	}
-	
+
 	#Here we modify the observed vector and the genotype vector so that if a carrier has a non-carrier parent then the other parent is a carrier.
 	for(i in 1:number.people){
 		if(ped$genotype[i]==1 & ped$momrow[i]>0){ #non-founder carrier
 			if(observed.vector[ped$momrow[i]]+observed.vector[ped$dadrow[i]]==1){ #This means that exactly one parent is observed.
 				if(ped$genotype[ped$momrow[i]]==1){
-					ped$genotype[ped$dadrow[i]]=0 
-					observed.vector[ped$dadrow[i]]=TRUE 
+					ped$genotype[ped$dadrow[i]]=0
+					observed.vector[ped$dadrow[i]]=TRUE
 				}else if(ped$genotype[ped$momrow[i]]==0){
-					ped$genotype[ped$dadrow[i]]=1 
-					observed.vector[ped$dadrow[i]]=TRUE 
+					ped$genotype[ped$dadrow[i]]=1
+					observed.vector[ped$dadrow[i]]=TRUE
 				}else if(ped$genotype[ped$dadrow[i]]==1){
-					ped$genotype[ped$momrow[i]]=0 
-					observed.vector[ped$momrow[i]]=TRUE 
+					ped$genotype[ped$momrow[i]]=0
+					observed.vector[ped$momrow[i]]=TRUE
 				}else { #(ped$genotype[ped$dadrow[i]]==0)
-					ped$genotype[ped$momrow[i]]=1 
-					observed.vector[ped$momrow[i]]=TRUE 
+					ped$genotype[ped$momrow[i]]=1
+					observed.vector[ped$momrow[i]]=TRUE
 				}
 			}
-		}	
+		}
 	}
 
-	
+
 	#add degree information regardless...
 	ped=.add.pedigree.degree(ped)
 
@@ -569,8 +671,6 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 
 	#Here we take note of the row numbers of the possible founders
 	proband.ancestors=ancestor.descendent.array[ped$proband==1,]
-	# print("proband.ancestors")
-	# print(proband.ancestors)
 	temp.vec={proband.ancestors & pedigree.founder}
 	number.proband.founders=sum(temp.vec)
 	founder.cols=which(temp.vec,arr.ind=TRUE)#note that these are not the id's but rather the col numbers(which could be the same as id)
@@ -599,7 +699,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 		if(ped$genotype[i]==1){
 			temp.lineage=ancestor.descendent.array[i,]&temp.vec
 			minimal.carrier.pedigree=minimal.carrier.pedigree|temp.lineage
-			if(affected.boolean[i]){ 
+			if(affected.boolean[i]){
 				minimal.affected.carrier.pedigree=minimal.affected.carrier.pedigree|temp.lineage
 			}
 		}
@@ -648,15 +748,15 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 			}
 		}
 	}
-	
+
 	#Here we modify the observed values so that all founders that do not contain all the observed carriers as descendents are non-carriers.
 	temp.descendents=minimal.carrier.pedigree
 	for(i in 1:number.people){
 		if(pedigree.founder[i]& !observed.vector[i]){
 			temp.descendents=ancestor.descendent.array[,i]
 			if(!all(temp.descendents[minimal.carrier.pedigree])){
-				ped$genotype[i]=0 
-				observed.vector[i]=TRUE 
+				ped$genotype[i]=0
+				observed.vector[i]=TRUE
 			}
 		}
 	}

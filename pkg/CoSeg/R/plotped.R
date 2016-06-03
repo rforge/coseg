@@ -30,5 +30,6 @@ function(ped){
   }
   ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(proband.vec,ped$geno,affected.status))
 	plot(ped2, id=ped$id)
-	title(main=paste0("Pedigree with highlighted proband, .genotype, and affected status"))#,sub="Label is age, age at death, or age of onset")
+	#title(main=paste0("Pedigree with highlighted proband, genotype, and affected status"))#,sub="Label is age, age at death, or age of onset")
+	title(main="Pedigree with highlighted proband, genotype, and affected status")
 }

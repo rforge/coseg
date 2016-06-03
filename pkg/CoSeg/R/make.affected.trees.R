@@ -21,11 +21,13 @@ function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL){
     print(i)
     t.tree <- make.tree(g, gdown, seed.age=age.prob[i], demographics.df)
     t.tree <- cbind(famid = i, t.tree)
-    tree.f <- rbind(tree.f, t.tree)
+    a.tree <- add.affected.to.tree(t.tree,frequencies.df,g=g)
+    tree.f <- rbind(tree.f, a.tree)
     #print(tree)
   }
 
   #return(tree.f)
-  tree.f2=add.affected.to.tree(tree.f,frequencies.df,g=g)
-return(tree.f2)
+  #tree.f2=add.affected.to.tree(tree.f,frequencies.df,g=g)
+
+return(tree.f)
 }
