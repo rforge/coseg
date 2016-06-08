@@ -81,6 +81,13 @@ function(offnum, y.birth, demographics.df=NULL){
   #    if(offn>0) break()
   #  }
   offn <- offnum
+
+  #initializing the arrays
+  age=rep(0,offn)
+  age.temp=age
+  dead=age
+  y.born=age
+
   female<-sample(0:1, offn, replace=T) #randomly assigne geneder
   id<-c(1:offn)#within family id
 
@@ -139,6 +146,10 @@ function(prev.dat,demographics.df=NULL){
   i<- toffs<- deg<-fem<-mal<-dad<-mom<-momid<-dadid<-geno<-female<-id<-dead <-y.born<-age<- age.temp<-ids<-temp<-next.dat<- NULL
   tids <- tcur.deg$id
   kids <- 0
+
+  #initializing arrays
+  toffs=rep(0,nrow(tcur.deg))
+
   while(kids <1){   ## while loop to make sure there is at least one person with offspring
     for (i in 1:nrow(tcur.deg)){
       toffs[i] <- .demog.nat(tcur.deg[i,]$y.born, 1,demographics.df)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
@@ -153,6 +164,10 @@ function(prev.dat,demographics.df=NULL){
   #print(toffs)
   cur.deg$toffs <- NULL
   ids <- cur.deg$id  ## get id for individuals with offspring
+
+  #initializing more arrays
+  geno=female=y.born=age=id=age.temp=dead=momid=dadid=fem=mal=dad=mom=rep(0,nrow(cur.deg))
+
   for (i in 1:nrow(cur.deg)){
     ###generate spouse
     geno[i] <- 0 # these should all be 0 no carriers marry in # abs(prev.dat[prev.dat$id==car[i],]$geno-1)# 0 since choose the carrier
@@ -224,90 +239,7 @@ next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
 next.dat.1<-rbind(prev.dat,in.2,next.dat)
 return(next.dat.1)
 }
-# .grow.p <-
-# function(prev.dat,demographics.df=NULL){
-#   deg.num <- max(prev.dat$degree)
-#   next.deg <- deg.num+1
-#   tcur.deg <- subset(prev.dat, prev.dat$degree==deg.num)
-#   i<- toffs<- deg<-fem<-mal<-dad<-mom<-momid<-dadid<-geno<-female<-id<-dead <-y.born<-age<-ids<-temp<-next.dat<- NULL
-#   tids <- tcur.deg$id
-#   kids <- 0
-#    while(kids <1){   ## while loop to make sure there is at least one person with offspring
-#     for (i in 1:nrow(tcur.deg)){
-#     toffs[i] <- .demog.nat(tcur.deg[i,]$y.born, 1,demographics.df)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
-#     #toffs[i] <- .demog.nat.china(tcur.deg[i,]$y.born, 1)$offs  #check for offspring #use offspring regardless of gender for now#, if none do not proceed
-#   	  }
-#   	    	#print(toffs)
-#   	kids <- sum(toffs,na.rm = TRUE)
-#   	}
-#   cur.deg.1 <- cbind(tcur.deg, toffs)
-#   cur.deg <- subset(cur.deg.1, cur.deg.1$toffs > 0) ## do not generate spouse if no offspring
-#   toffs <- cur.deg$toffs
-#   #print(toffs)
-#   cur.deg$toffs <- NULL
-#   ids <- cur.deg$id  ## get id for individuals with offspring
-#   for (i in 1:nrow(cur.deg)){
-#           ###generate spouse
-#           geno[i] <- 0 # these should all be 0 no carriers marry in # abs(prev.dat[prev.dat$id==car[i],]$geno-1)# 0 since choose the carrier
-#           female[i]<-abs(cur.deg[cur.deg$id==ids[i],]$female-1) # gender opposite
-#           if(female[i] == 0){
-#             y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)-2, 3),3)  # choose age, men tend to be older than the women they marry
-#            age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)-2, 3),3)  #choose age at death women usually outlive their spouses
-#           }
-#          if(female[i] == 1){
-#            y.born[i]<-round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$y.born)+2, 3),3)  # choose age, men tend to be older than the women they marry
-#            age[i] <- round(rnorm(1, (cur.deg[cur.deg$id==ids[i],]$age)+2, 3),3)  #choose age at death women usually outlive their spouses
-#            }
-#            id[i]<-cur.deg[cur.deg$id==ids[i],]$id+0.1  ## id of spouse is id of carrier-mate + 0.1
-#            dead[i]<-1
-#               if (round(2010-y.born[i]) < round(rnorm(1, 81.1, 5),3)){ dead[i]<-0}
-#
-#            in.2 <- data.frame(list("degree"=deg.num, "momid"=NA, "dadid"=NA, "id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead, "geno"=geno))
-#
-#         ##### generate offspring
-#            in.1 <- cur.deg
-#            temp<-list("degree"=next.deg, "momid"=NA, "dadid"=NA, "id"=NA, "age"=NA, "female"=NA,"y.born"=NA, "dead"=NA, "geno"=NA)
-#             if (in.1[in.1$id==ids[i],]$female==1){  # if female parent from the initial pedigree
-#                momid[i]<-in.1[in.1$id==ids[i],]$id
-#                dadid[i]<-in.2$id[i]
-#                fem[i]<-match(1, in.1[in.1$id==ids[i],]$female)  #determine mother and father genotypes
-#                mal[i]<-match(0, in.2$female[i])
-#                dad[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
-#                mom[i] <- in.2$geno[mal[i]]
-#                toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-#                #toffyb <-  (in.1[in.1$id==ids[i],]$y.born) + (.demog.nat.china(in.1[in.1$id==ids[i],]$y.born, in.1[in.1$id==ids[i],]$female)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-#                temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
-#                temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
-#                temp$momid<-momid[i]
-#                temp$dadid<-dadid[i]
-#                temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
-#                temp<-as.data.frame(temp)
-#                }else if(in.1[in.1$id==ids[i],]$female==0){
-#                momid[i]<-in.2$id[i]
-#                dadid[i]<-in.1[in.1$id==ids[i],]$id
-#                fem[i]<-match(1, in.2$female[i])  #determine mother father genotypes
-#                mal[i]<-match(0, in.1[in.1$id==ids[i],]$female)
-#                dad[i] <- in.2$geno[mal[i]]
-#                mom[i] <- in.1[in.1$id==ids[i],]$geno[fem[i]]
-#                toffyb <-  (in.2$y.born[i]) + (.demog.nat(in.2$y.born[i],1,demographics.df)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-#                #toffyb <-  (in.2$y.born[i]) + (.demog.nat.china(in.2$y.born[i],1)$age.mar) + 5 ###children clustered around 5 years after age of marriage
-#                temp1<-.demog.2(toffs[i], toffyb, demographics.df) #generate age, gender, no. of offsprings with list
-#                temp2<-.genotype(mom[i], dad[i], temp1)#generate genotypes of offsprings with list
-#                temp$momid<-momid[i]
-#                temp$dadid<-dadid[i]
-#                temp[c("id", "age", "female", "y.born", "dead", "geno")]<-temp2
-#                temp<-as.data.frame(temp)
-#                }
-#
-#              next.dat<- rbind(next.dat,temp)
-#
-#          }
-#       ### can we remove the NA from the
-#       next.dat$id <- 1:length(next.dat$id)
-#       next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
-#       next.dat.1<-rbind(prev.dat,in.2,next.dat)
-# return(next.dat.1)
-# }
+
 
 .risktoinci <-
 function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cumulative risk at those points

@@ -90,7 +90,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
       if(tree.f2$famid[i] %in% noproband){
         tree.f2$proband[i] <- -1}
       }
-    print(noproband)
+    # print(noproband)
 
     counter=counter+1
     if(max(tree.f2$proband)==1 | counter>500){
@@ -99,8 +99,8 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
     if(counter %% 20 == 0){
       print(c("add.affected.to.tree counter: ",counter))
     }
-    print(c("min(tree.f2$proband):",min(tree.f2$proband)))
-    print(c("tree.f2$proband:",tree.f2$proband))
+    # print(c("min(tree.f2$proband):",min(tree.f2$proband)))
+    # print(c("tree.f2$proband:",tree.f2$proband))
   }
 
   if(counter>500){
@@ -108,4 +108,18 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
   }
 
   return(tree.f2)
+}
+
+
+
+add.affected.to.trees <-
+function(tree.f2, frequencies.df=NULL,g=4,benign.bool=FALSE){
+    temp.tree1 <- temp.tree2 <- trees <- NULL
+    f <- unique(tree.f2$famid)
+    for (i in 1:length(f)) {
+        temp.tree1<-subset(tree.f2, famid==f[i])
+        temp.tree2 <- add.affected.to.tree(tree.f=temp.tree1,frequencies.df=frequencies.df,g=g, benign.bool=benign)
+        trees <- rbind(trees,temp.tree2)
+    }
+    return(trees)
 }
