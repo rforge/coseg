@@ -59,7 +59,7 @@ function(g=4, gdown=2, seed.age=50, demographics.df=NULL){
     ############################################
 
     counter=counter+1
-    if(sum({!deg$dead}&deg$geno)>0 | counter>100){
+    if(sum({!deg$dead}&deg$geno&{deg$age>25})>0 | counter>100){
       no.possible.proband=FALSE
     }
   }
