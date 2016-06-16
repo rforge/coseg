@@ -338,12 +338,12 @@ function(age, sex, geno, frequencies.df){
 }
 
 
-.add.genotype=function(ped){
-	#this function converts geno to genotype where geno = 1 if carrier and 0 if unknown and genotype = 0 if not carrier, 1 if carrier, and 2 if unknown
-	ped$genotype=ped$geno
-	ped$genotype[ped$geno==0]=2
-	return(ped)
-}
+# .add.genotype=function(ped){
+# 	#this function converts geno to genotype where geno = 1 if carrier and 0 if unknown and genotype = 0 if not carrier, 1 if carrier, and 2 if unknown
+# 	ped$genotype=ped$geno
+# 	ped$genotype[ped$geno==0]=2
+# 	return(ped)
+# }
 
 .add.pedigree.degree=function(ped){
 	#this function modifies the pedigree so that it has the relevant degree information
@@ -460,9 +460,12 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 
 	#first we check if the pedigrees have the cols we need
 	ped=.add.parent.cols(ped)
-	if(length(ped$genotype)==0){
-		ped=.add.genotype(ped)
+
+  if(length(ped$genotype)==0){
+		# ped=.add.genotype(ped)
+    exit("Error, pedigree has no genotype information.")
 	}
+
 	observed.vector=array(FALSE,dim=c(number.people))
 	observed.vector[ped$genotype!=2]=TRUE
 
@@ -514,7 +517,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	#Note that ancestor.descendent.array[i,j]=TRUE if j is an ancestor of i or i is a descendent of j
 	#Also note that for convenience in the code, ancestor.descendent.array[i,i]=TRUE
 	ancestor.descendent.array=array(FALSE,dim=c(number.people,number.people))
-	pedigree.founder={ped$momrow==0}
+	pedigree.founders={ped$momrow==0}
 	for(i in 1:number.people){
 		ancestor.vec=array(FALSE,dim=c(number.people))
 		future.vec=ancestor.vec
@@ -523,7 +526,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 		changes=TRUE
 		while(changes){
 			for(j in 1:number.people){
-				if(current.vec[j] & !pedigree.founder[j]){
+				if(current.vec[j] & !pedigree.founders[j]){
 					future.vec[ped$dadrow[j]]=TRUE
 					future.vec[ped$momrow[j]]=TRUE
 				}
@@ -567,11 +570,11 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 			}
 			ped=old.ped[order.vec,]
 
-			#we also need to reorder the ancestor.descendent.array, observed.vector, affected.boolean, momrow, dadrow, and pedigree.founder
+			#we also need to reorder the ancestor.descendent.array, observed.vector, affected.boolean, momrow, dadrow, and pedigree.founders
 			print(order.vec)
 			ancestor.descendent.array=ancestor.descendent.array[order.vec,order.vec]
 			observed.vector=observed.vector[order.vec]
-			pedigree.founder=pedigree.founder[order.vec]
+			pedigree.founders=pedigree.founders[order.vec]
 			affected.boolean=affected.boolean[order.vec]
 			ped=.add.parent.cols(ped)
 
@@ -603,7 +606,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 
 	#Here we take note of the row numbers of the possible founders
 	proband.ancestors=ancestor.descendent.array[ped$proband==1,]
-	temp.vec={proband.ancestors & pedigree.founder}
+	temp.vec={proband.ancestors & pedigree.founders}
 	number.proband.founders=sum(temp.vec)
 	founder.cols=which(temp.vec,arr.ind=TRUE)#note that these are not the id's but rather the col numbers(which could be the same as id)
 
@@ -684,7 +687,7 @@ CalculateLikelihoodRatio=function(ped,affected.boolean){
 	#Here we modify the observed values so that all founders that do not contain all the observed carriers as descendents are non-carriers.
 	temp.descendents=minimal.carrier.pedigree
 	for(i in 1:number.people){
-		if(pedigree.founder[i]& !observed.vector[i]){
+		if(pedigree.founders[i]& !observed.vector[i]){
 			temp.descendents=ancestor.descendent.array[,i]
 			if(!all(temp.descendents[minimal.carrier.pedigree])){
 				ped$genotype[i]=0
