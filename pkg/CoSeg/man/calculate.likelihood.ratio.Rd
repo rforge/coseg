@@ -1,5 +1,5 @@
-\name{CalculateLikelihoodRatio}
-\alias{CalculateLikelihoodRatio}
+\name{calculate.likelihood.ratio}
+\alias{calculate.likelihood.ratio}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 A function to calculate the likelihood ratio
@@ -8,7 +8,7 @@ A function to calculate the likelihood ratio
 This function calculates the likelihood ratio for an allele causing a disease asssuming that the allele is extremely rare so that all family members who have the allele got it directly from a common ancestor in the pedigree.
 }
 \usage{
-CalculateLikelihoodRatio(ped, affected.boolean)
+calculate.likelihood.ratio(ped, affected.boolean)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
