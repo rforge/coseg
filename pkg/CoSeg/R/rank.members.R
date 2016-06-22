@@ -1,5 +1,5 @@
 
-rank.members=function(ped,affected.boolean){
+rank.members=function(ped,affected.vector,gene="BRCA1"){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we rank the members of the pedigree with unknown genotype according to how much the likelihood ratio changes if this person were to be genotyped.  Note that we take the average of them being a carrier and non-carrier.
   number.people=length(ped$id)
@@ -94,14 +94,14 @@ rank.members=function(ped,affected.boolean){
   # print(c("unknown.genotype.positions: ", unknown.genotype.positions))
 
   #here we cycle through all the unknown genotypes making each one in turn a carrier and then a non-carrier and find the likelihood ratio.
-  original.lr=calculate.likelihood.ratio(ped,affected.boolean)$likelihood.ratio
+  original.lr=calculate.likelihood.ratio(ped,affected.vector,gene=gene)$likelihood.ratio
   temp.results=array(0,dim=c(2,number.unknown.genotypes))#2 rows
   for(i in 1:number.unknown.genotypes){
     for(j in 0:1){#non-carrier, carrier
       temp.ped=ped
       temp.ped$genotype[unknown.genotype.positions[i]]=j
       temp.ped$genotype=analyze.pedigree.genotypes(temp.ped)
-      temp.results[j,i]=calculate.likelihood.ratio(temp.ped,affected.boolean)$likelihood.ratio
+      temp.results[j,i]=calculate.likelihood.ratio(temp.ped,affected.vector,gene=gene)$likelihood.ratio
     }
   }
 
@@ -109,7 +109,7 @@ rank.members=function(ped,affected.boolean){
   average.lr.changes=colSums(abs(temp.results-original.lr))
   temp.changes=ped$id*0
   temp.changes[unknown.genotype.positions]=average.lr.changes
-  ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(ped$proband,ped$genotype==1,affected.boolean))
+  ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(ped$proband,ped$genotype==1,affected.vector==2))
 	plot(ped2, id=paste0(ped$id, "\n", round(ped$age), "\n", round(temp.changes,digits=2)))
 	#title(main=paste0("Pedigree with highlighted proband, genotype, and affected status"))#,sub="Label is age, age at death, or age of onset")
 	title(main="Pedigree with highlighted proband, carriers, and affection status", sub="Label is ID, age, and average likelihood ratio change.")

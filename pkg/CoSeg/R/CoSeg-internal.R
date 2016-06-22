@@ -384,35 +384,57 @@ function(age, sex, geno, frequencies.df){
 
 
 
-.BRCA.penetrance.prob=function(genotype,cancer,age,gender,
-	#fBRCA=c(52.3,13.89,0.821),mBRCA=c(63.48,12.24,0.021), #John's BRCA1 Estimate
-  fBRCA=c(59.83,11.82,0.7396),mBRCA=c(61.31,11.96,0.5851), #John's LS Estimate
-	#fBRCA=c(53,16.5,0.96),mBRCA=c(94.5,20,0.0025), #BRCA1 Mohammadi
-	#fBRCA=c(53.9,16.5,0.96),mBRCA=c(94.5,20,0.0025), #BRCA1 Jonker
-	#fBRCA=c(58.5,13.8,1),mBRCA=c(58.5,13.8,0.15), #BRCA2 Mohammadi
+.penetrance.prob=function(genotype,affected.vector,age,gender,gene){
+	#fMutant=c(52.3,13.89,0.821),mMutant=c(63.48,12.24,0.021), #John's BRCA1 Estimate
+  #fMutant=c(59.83,11.82,0.7396),mMutant=c(61.31,11.96,0.5851), #John's LS Estimate
+	#fMutant=c(53,16.5,0.96),mMutant=c(94.5,20,0.0025), #BRCA1 Mohammadi
+	#fMutant=c(53.9,16.5,0.96),mMutant=c(94.5,20,0.0025), #BRCA1 Jonker
+	#fMutant=c(58.5,13.8,1),mMutant=c(58.5,13.8,0.15), #BRCA2 Mohammadi
 	#fNorm=c(64.02,10.38,0.091),mNorm=c(67.29,9.73,0.0015)){ #John's BRCA1 Estimate
-  fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's LS Estimate
+  #fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's LS Estimate
 	#fNorm=c(72,20,0.15),mNorm=c(94.5,20,0.0025)){ #Mohammadi listed
 	#fNorm=c(66.3,14.9,0.08),mNorm=c(94.5,20,0.0025)){ #Jonker model 1
 	#fNorm=c(72,16.5,0.10),mNorm=c(94.5,20,0.0025)){ #Jonker model 2
 	#mBRCA1 is set to mNorm
 
 	#this function returns the probability that an individual has or doesn't have cancer given their genotype, age, and gender.  Note penetrance is given as (\mu,\sigma,r) for the normal distribution
+  fMutant=c(52.3,13.89,0.821)
+  mMutant=c(63.48,12.24,0.021) #John's BRCA1 Estimate
+  fNorm=c(64.02,10.38,0.091)
+  mNorm=c(67.29,9.73,0.0015) #John's BRCA1 Estimate
+  if(gene=="LS"){
+    fMutant=c(59.83,11.82,0.7396)
+    mMutant=c(61.31,11.96,0.5851) #John's LS Estimate
+    fNorm=c(65.39,11.54,0.1115)
+    mNorm=c(67.36,10.36,0.1014) #John's LS Estimate
+  }else if(gene=="BRCA2"){
+    fMutant=c(54.07,13.30,0.679)
+    mMutant=c(57.27,13.43,0.090) #John's BRCA2 Estimate
+    fNorm=c(64.02,10.38,0.091)
+    mNorm=c(67.29,9.73,0.0015) #John's SEER estimate (same as BRCA1)
+  }else if(gene=="BRCA1"){
+    fMutant=c(52.3,13.89,0.821)
+    mMutant=c(63.48,12.24,0.021) #John's BRCA1 Estimate
+    fNorm=c(64.02,10.38,0.091)
+    mNorm=c(67.29,9.73,0.0015) #John's BRCA1 Estimate
+  }else{
+    print("No gene type given or identified. Using BRCA1 for penetrance. ")
+  }
 
 	number.people=length(genotype)
 	prob=genotype*0
-	if(length(cancer)!=number.people | length(age)!=number.people | length(gender)!=number.people){
+	if(length(affected.vector)!=number.people | length(age)!=number.people | length(gender)!=number.people){
 		print("Vectors are different lengths")
-		return()
+		return(0)
 	}
 	for(i in 1:number.people){
-		if(cancer[i]==1){
+		if(affected.vector[i]==2){#individual is affected
 			#for some reason the paper says it is given by the derivative if individual has cancer...
 			if(genotype[i]==1){
 				if(gender[i]==1){#male
-					temp=mBRCA[3]*dnorm(age[i],mBRCA[1],mBRCA[2])/mBRCA[2]
+					temp=mMutant[3]*dnorm(age[i],mMutant[1],mMutant[2])/mMutant[2]
 				} else {
-					temp=fBRCA[3]*dnorm(age[i],fBRCA[1],fBRCA[2])/fBRCA[2]
+					temp=fMutant[3]*dnorm(age[i],fMutant[1],fMutant[2])/fMutant[2]
 				}
 			} else {
 				if(gender[i]==1){#male
@@ -422,12 +444,12 @@ function(age, sex, geno, frequencies.df){
 				}
 			}
 			prob[i]=temp
-		} else {
+		} else if(affected.vector[i]==1){ #individual is unaffected
 			if(genotype[i]==1){
 				if(gender[i]==1){#male
-					temp=mBRCA[3]*pnorm(age[i],mBRCA[1],mBRCA[2])
+					temp=mMutant[3]*pnorm(age[i],mMutant[1],mMutant[2])
 				} else {
-					temp=fBRCA[3]*pnorm(age[i],fBRCA[1],fBRCA[2])
+					temp=fMutant[3]*pnorm(age[i],fMutant[1],fMutant[2])
 				}
 			} else {
 				if(gender[i]==1){#male
@@ -437,10 +459,60 @@ function(age, sex, geno, frequencies.df){
 				}
 			}
 			prob[i]=1-temp
-		}
+		} else{ #individual has unknown phentoype
+      if(genotype[i]==1){
+				if(gender[i]==1){#male
+          temp1=mMutant[3]*dnorm(age[i],mMutant[1],mMutant[2])/mMutant[2]
+					temp2=mMutant[3]*pnorm(age[i],mMutant[1],mMutant[2])
+				} else {
+          temp1=fMutant[3]*dnorm(age[i],fMutant[1],fMutant[2])/fMutant[2]
+					temp2=fMutant[3]*pnorm(age[i],fMutant[1],fMutant[2])
+				}
+			} else {
+				if(gender[i]==1){#male
+          temp1=mNorm[3]*dnorm(age[i],mNorm[1],mNorm[2])/mNorm[2]
+					temp2=mNorm[3]*pnorm(age[i],mNorm[1],mNorm[2])
+				} else {
+          temp1=fNorm[3]*dnorm(age[i],fNorm[1],fNorm[2])/mNorm[2]
+					temp2=fNorm[3]*pnorm(age[i],fNorm[1],fNorm[2])
+				}
+			}
+			prob[i]=0.5*{temp1}+0.5*{1-temp2}
+    }
 	}
 	return(prob)
 }
+
+
+format.web.to.coseg=function(ped){
+  #this function takes a pedigree in the format for analyze.myvariant.org which has ordered columns with names that may not be meaningful to one with meaningful names for use in CoSeg
+	names(ped)[1]="famid"
+	names(ped)[2]="id"
+	names(ped)[3]="momid"
+	names(ped)[4]="dadid"
+  ped$female=ped[,5]*0
+  ped$female[ped[,5]==1]=1
+	names(ped)[6]="affection"
+	names(ped)[7]="age"
+	ped$genotype=ped[,9]
+	for(i in 1:length(ped$genotype)){
+		if(ped[i,8]==0 & ped[i,9]==0){
+			ped$genotype[i]=2 #unknown genotype
+		}else if(ped[i,8]==2 & ped[i,9]==2){
+			ped$genotype[i]=0 #non-carrier
+		}else if(ped[i,8]==1 & ped[i,9]==2){
+			ped$genotype[i]=1 #carrier
+		}else if(ped[i,8]==2 & ped[i,9]==1){
+			ped$genotype[i]=1 #carrier
+		}else{
+			print("Genotypes do not fit model assumptions.  Individuals should be completely typed or untyped.  Also there should not be any individuals homozygous for the mutant allele.")
+			return(0)
+		}
+	}
+	names(ped)[10]="proband"
+	return(ped)
+}
+
 
 
 analyze.pedigree.genotypes=function(ped){
@@ -574,7 +646,7 @@ analyze.pedigree.genotypes=function(ped){
 }
 
 
-calculate.likelihood.ratio=function(ped,affected.boolean){
+calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
 #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
 #In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
 
@@ -698,12 +770,12 @@ calculate.likelihood.ratio=function(ped,affected.boolean){
 			}
 			ped=old.ped[order.vec,]
 
-			#we also need to reorder the ancestor.descendent.array, observed.vector, affected.boolean, momrow, dadrow, and pedigree.founders
+			#we also need to reorder the ancestor.descendent.array, observed.vector, affected.vector, momrow, dadrow, and pedigree.founders
 			print(order.vec)
 			ancestor.descendent.array=ancestor.descendent.array[order.vec,order.vec]
 			observed.vector=observed.vector[order.vec]
 			pedigree.founders=pedigree.founders[order.vec]
-			affected.boolean=affected.boolean[order.vec]
+			affected.vector=affected.vector[order.vec]
 			ped=.add.parent.cols(ped)
 
 			rm(old.ped)
@@ -715,7 +787,7 @@ calculate.likelihood.ratio=function(ped,affected.boolean){
 	#note that 1 is not carrier and 2 is carrier
 	all.phenotype.probabilities=array(0,dim=c(2,number.people))
 	for(i in 1:2){
-		all.phenotype.probabilities[i,]=.BRCA.penetrance.prob(genotype=rep({i-1},times=number.people),cancer=affected.boolean,age=ped$age,gender={ped$female+1})
+		all.phenotype.probabilities[i,]=.penetrance.prob(genotype=rep({i-1},times=number.people),affected.vector=affected.vector,age=ped$age,gender={ped$female+1},gene=gene)
 	}
 
 	# #We try to speed up the algorithm by saving the ratios of the phenotype probabilities for use later
@@ -762,33 +834,37 @@ calculate.likelihood.ratio=function(ped,affected.boolean){
 		if(ped$genotype[i]==1){
 			temp.lineage=ancestor.descendent.array[i,]&temp.vec
 			minimal.carrier.pedigree=minimal.carrier.pedigree|temp.lineage
-			if(affected.boolean[i]){
+			if(affected.vector[i]==2){
 				minimal.affected.carrier.pedigree=minimal.affected.carrier.pedigree|temp.lineage
 			}
 		}
 	}
 
 	#start from the founder and check if he has 2 offspring that are carriers or if he is an observed carrier.  If not, cut him off, find his carrier offspring and check them.  Repeat until offspring either has 2 carriers or is observed.
-	current.top=temp.founder
-	if(current.top>0){
-		while(current.top>0 & !observed.vector[current.top]){
-			#store current.top's direct descendents.
-			temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
-			#set NA's in temp.vec to FALSE
-			temp.vec[is.na(temp.vec)]=FALSE
-			temp.int=sum(temp.vec&minimal.affected.carrier.pedigree)
-			if(temp.int>1){#done... no need to continue.  The top of the tree is ok
-				current.top=0
-			break
-			}else if(temp.int==1){
-				minimal.affected.carrier.pedigree[current.top]=FALSE
-				current.top=which(temp.vec&minimal.affected.carrier.pedigree)[1]
-			}else{
-				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
-				return()
-			}
-		}
-	}
+  if(sum(affected.vector==2 & ped$genotype==1)>1){ #if there is only one carrier affected then this is pointless.
+  	current.top=temp.founder
+  	if(current.top>0){
+  		while(current.top>0 & !observed.vector[current.top]){
+  			#store current.top's direct descendents.
+  			temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
+  			#set NA's in temp.vec to FALSE
+  			temp.vec[is.na(temp.vec)]=FALSE
+  			temp.int=sum(temp.vec&minimal.affected.carrier.pedigree)
+  			if(temp.int>1){#done... no need to continue.  The top of the tree is ok
+  				current.top=0
+  			break
+  			}else if(temp.int==1){
+  				minimal.affected.carrier.pedigree[current.top]=FALSE
+  				current.top=which(temp.vec&minimal.affected.carrier.pedigree)[1]
+  			}else{
+  				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer.  Affected.carrier.pedigree")
+          return(0)
+  			}
+  		}
+  	}
+  }else{
+    minimal.affected.carrier.pedigree= {affected.vector==2 & ped$genotype==1}
+  }
 	#Repeat for minimal.carrier.pedigree
 	current.top=temp.founder
 	if(current.top>0){
