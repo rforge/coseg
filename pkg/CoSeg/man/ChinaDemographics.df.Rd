@@ -63,6 +63,6 @@ Data were taken from the following sources.
   tree4=make.affected.trees(n=1,g=2,gdown=2,frequencies.df=BRCA2frequencies.df)
 
   #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
-  plotped(tree3)
+  plot.ped(tree3)
 }
 \keyword{datasets}

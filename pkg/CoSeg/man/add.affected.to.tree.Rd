@@ -47,7 +47,7 @@ John Michael O. Ranola and Brian H. Shirts
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-See also \code{\link{make.tree}}, \code{\link{make.affected.trees}}, and \code{\link{plotped}}
+See also \code{\link{make.tree}}, \code{\link{make.affected.trees}}, and \code{\link{plot.ped}}
 %\code{\link{BRCA1frequencies.df}}, \code{\link{BRCA2frequencies.df}}, and \code{\link{LSfrequencies.df}}
 }
 \examples{
@@ -80,7 +80,7 @@ tree3=make.affected.trees(n=1,g=2,gdown=2,frequencies.df=LSfrequencies.df)
 tree4=make.affected.trees(n=1,g=2,gdown=2,frequencies.df=BRCA2frequencies.df)
 
 #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
-plotped(tree3)
+plot.ped(tree3)
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

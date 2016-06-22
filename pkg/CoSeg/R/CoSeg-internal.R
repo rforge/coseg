@@ -443,10 +443,125 @@ function(age, sex, geno, frequencies.df){
 }
 
 
+analyze.pedigree.genotypes(ped){
+  #this function figures out which members of the pedigree truly have unknown genotypes according to the assumptions of the model (i.e. single founder).  It returns a vector of length number.people which is 0 for individuals that are known or implied non-carriers, 1 for individuals that are known or implied carriers, and 2 for untyped individuals whose genotype cannot be inferred.  We do this by finding out which individuals may be carriers and which individuals must be carriers.  This means that the rest of the individuals with unknown genotypes must be non-carriers.
+  number.people=length(ped$id)
+  #first we make sure the pedigrees have the cols we need
+  ped=.add.parent.cols(ped)
+  if(length(ped$genotype)==0){
+    # ped=.add.genotype(ped)
+    exit("Error, pedigree has no genotype information.")
+  }
+
+  if(sum(ped$genotype==2)==0){
+    exit("No members with unknown genotype to rank.")
+  }
+
+  #Here, we find all ancestors and descendents of each individual
+  #Note that ancestor.descendent.array[i,j]=TRUE if j is an ancestor of i or i is a descendent of j
+  #Also note that for convenience in the code, ancestor.descendent.array[i,i]=TRUE
+  ancestor.descendent.array=array(FALSE,dim=c(number.people,number.people))
+  pedigree.founders={ped$momrow==0}
+  for(i in 1:number.people){
+    ancestor.vec=array(FALSE,dim=c(number.people))
+    future.vec=ancestor.vec
+    ancestor.vec[i]=TRUE
+    current.vec=ancestor.vec
+    changes=TRUE
+    while(changes){
+      for(j in 1:number.people){
+        if(current.vec[j] & !pedigree.founders[j]){
+          future.vec[ped$dadrow[j]]=TRUE
+          future.vec[ped$momrow[j]]=TRUE
+        }
+      }
+      if(sum(future.vec)>0){
+        ancestor.vec=ancestor.vec|future.vec
+        current.vec=future.vec
+        future.vec[]=FALSE
+      } else {
+        changes=FALSE
+      }
+    }
+    ancestor.descendent.array[i,]=ancestor.vec[]
+  }
+
+  #find all possible founders containing all carriers
+  possible.founders=ancestor.descendent.array[ped$proband==1,]
+  for(i in 1:number.people){
+    if(ped$genotype[i]==1){
+      possible.founders=possible.founders & ancestor.descendent.array[i,]
+    }
+  }
+  #this line makes sure that there aren't any non-carrier founders in the list.
+  possible.founders=possible.founders & {ped$genotype!=0}
 
 
+  #Here we go through the unknown genotypes finding all possible carriers.  If an individual is a possible carrier(has a carrier parent), we set them to carrier and repeat.
+  temp.genotype=ped$genotype
+  temp.genotype[possible.founders]=1 #sets all the possible founders to carrier status
+  changes=TRUE
+  while(changes){
+    changes=FALSE
+    for(i in 1:number.people){
+      if(temp.genotype[i]==2){
+        #check if parent is a carrier
+        if(temp.genotype[ped$momrow[i]]==1 | temp.genotype[ped$dadrow[i]]==1){
+          temp.genotype[i]=1
+          changes=TRUE
+        }
+      }
+    }
+  }
+  temp.positions=0*temp.genotype
+  counter=0
+  for(i in 1:number.people){
+    if(ped$genotype[i]==2 & temp.genotype[i]==1){
+      counter=counter+1
+      temp.positions[counter]=i
+    }
+  }
+  number.unknown.genotypes=sum(temp.positions>0)
+  unknown.genotype.positions=temp.positions[1:number.unknown.genotypes]
+  #temp.genotype has all possible carriers set to 1.
 
-CalculateLikelihoodRatio=function(ped,affected.boolean){
+
+  #now we find all individuals who must be carriers according to the model (single founder) and known genotypes.
+  #we can do that by going through all the known carriers up to each possible founder and taking the intersection of all these vectors.
+  minimal.pedigree=array(1,dim=c(number.people))
+  for(i in 1:number.people){
+    if(possible.founders[i]==1){
+      #find the minimal pedigree assuming this founder.
+      temp.minimal.pedigree=array(0,dim=c(number.people))
+      for(j in 1:number.people){
+        if(ped$genotype[j]==1){
+          #this finds the line connecting the carrier to the assumed founder
+          temp.lineage=ancestor.descendent.array[,i] & ancestor.descendent.array[j,]
+          temp.minimal.pedigree=temp.minimal.pedigree | temp.lineage
+        }
+      }
+      minimal.pedigree=minimal.pedigree & temp.minimal.pedigree
+    }
+  }
+  #minimal.pedigree has all implied carriers set to 1.
+
+  implied.genotype=ped$genotype
+  for(i in 1:number.people){
+    if(ped$genotype[i]==2){
+      if(minimal.pedigree[i]==1){ #must be carrier
+        implied.genotype[i]=1
+      }else if(temp.genotype[i]==0){ #must be non-carrier
+        implied.genotype[i]=0
+      }
+    }
+  }
+
+  return(implied.genotype)
+
+}
+
+
+calculate.likelihood.ratio=function(ped,affected.boolean){
 #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
 #In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
 

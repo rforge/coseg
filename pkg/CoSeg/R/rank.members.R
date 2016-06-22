@@ -85,13 +85,13 @@ rank.members=function(ped,affected.boolean){
   unknown.genotypes.positions=temp.positions[1:number.unknown.genotypes]
 
   #here we cycle through all the unknown genotypes making each one in turn a carrier and then a non-carrier and find the likelihood ratio.
-  original.lr=CalculateLikelihoodRatio(ped,affected.boolean)$likelihood.ratio
+  original.lr=calculate.likelihood.ratio(ped,affected.boolean)$likelihood.ratio
   temp.results=array(0,dim=c(2,number.unknown.genotypes))#2 rows
   for(i in 1:number.unknown.genotypes){
     for(j in 0:1){#non-carrier, carrier
       temp.ped=ped
       temp.ped$genotype[unknown.genotypes.positions[i]]=j
-      temp.results[j,i]=CalculateLikelihoodRatio(temp.ped,affected.boolean)$likelihood.ratio
+      temp.results[j,i]=calculate.likelihood.ratio(temp.ped,affected.boolean)$likelihood.ratio
     }
   }
 

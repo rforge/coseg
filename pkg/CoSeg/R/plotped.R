@@ -1,4 +1,4 @@
-plotped <-
+plot.ped <-
 function(ped){
 	#function that easily plots the pedigrees
 	#displays the pedigree...
