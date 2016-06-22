@@ -443,18 +443,20 @@ function(age, sex, geno, frequencies.df){
 }
 
 
-analyze.pedigree.genotypes(ped){
+analyze.pedigree.genotypes=function(ped){
   #this function figures out which members of the pedigree truly have unknown genotypes according to the assumptions of the model (i.e. single founder).  It returns a vector of length number.people which is 0 for individuals that are known or implied non-carriers, 1 for individuals that are known or implied carriers, and 2 for untyped individuals whose genotype cannot be inferred.  We do this by finding out which individuals may be carriers and which individuals must be carriers.  This means that the rest of the individuals with unknown genotypes must be non-carriers.
   number.people=length(ped$id)
   #first we make sure the pedigrees have the cols we need
   ped=.add.parent.cols(ped)
-  if(length(ped$genotype)==0){
+  if(length(ped$genotype)<=1){
     # ped=.add.genotype(ped)
-    exit("Error, pedigree has no genotype information.")
+    print("Error: Pedigree has no genotype information.")
+    return(0)
   }
 
   if(sum(ped$genotype==2)==0){
-    exit("No members with unknown genotype to rank.")
+    print("No members with unknown genotype to analyze.")
+    return(ped$genotype)
   }
 
   #Here, we find all ancestors and descendents of each individual
@@ -487,25 +489,36 @@ analyze.pedigree.genotypes(ped){
   }
 
   #find all possible founders containing all carriers
-  possible.founders=ancestor.descendent.array[ped$proband==1,]
-  for(i in 1:number.people){
-    if(ped$genotype[i]==1){
-      possible.founders=possible.founders & ancestor.descendent.array[i,]
+  if(sum(pedigree.founders & ped$genotype==1)>0){
+    possible.founders=pedigree.founders & ped$genotype==1
+  } else{
+    possible.founders=ancestor.descendent.array[ped$proband==1,]
+    for(i in 1:number.people){
+      if(ped$genotype[i]==1){
+        possible.founders=possible.founders & ancestor.descendent.array[i,]
+      }
     }
+    #this line makes sure that there aren't any non-carrier founders in the list.
+    possible.founders=possible.founders & {ped$genotype!=0}
+    possible.founders=possible.founders & pedigree.founders
   }
-  #this line makes sure that there aren't any non-carrier founders in the list.
-  possible.founders=possible.founders & {ped$genotype!=0}
 
 
   #Here we go through the unknown genotypes finding all possible carriers.  If an individual is a possible carrier(has a carrier parent), we set them to carrier and repeat.
   temp.genotype=ped$genotype
   temp.genotype[possible.founders]=1 #sets all the possible founders to carrier status
+  temp.genotype[!possible.founders & pedigree.founders]=0 #sets founders that don't contain all carriers in the lineages to be non-carriers.
   changes=TRUE
   while(changes){
     changes=FALSE
     for(i in 1:number.people){
-      if(temp.genotype[i]==2){
+      if(temp.genotype[i]==2 & ped$momrow[i]>0){
         #check if parent is a carrier
+        # print(ped$genotype)
+        # print(temp.genotype[ped$momrow[i]])
+        # print(temp.genotype[ped$dadrow[i]])
+        # print(ped$momrow[i])
+        # print(ped$dadrow[i])
         if(temp.genotype[ped$momrow[i]]==1 | temp.genotype[ped$dadrow[i]]==1){
           temp.genotype[i]=1
           changes=TRUE
@@ -578,7 +591,7 @@ calculate.likelihood.ratio=function(ped,affected.boolean){
 
   if(length(ped$genotype)==0){
 		# ped=.add.genotype(ped)
-    exit("Error, pedigree has no genotype information.")
+    stop("Error, pedigree has no genotype information.")
 	}
 
 	observed.vector=array(FALSE,dim=c(number.people))
@@ -816,8 +829,14 @@ calculate.likelihood.ratio=function(ped,affected.boolean){
 	#print(c("observed.separating.meioses",observed.separating.meioses))
 	#R stores ints as 32-bits.  This gives a max value of about 2 billion.  We need a larger version so we store it as 2 32-bits integer.
 	number.genotypes.vec=array(0,dim=c(2))
+  possible.founders={ped$genotype!=0 & pedigree.founders}
+  number.possible.founders=sum(possible.founders)
+  possible.founder.cols=which(possible.founders,arr.ind=TRUE)
+  # print(c("possible.founders: ",possible.founders))
+  print(c("number.possible.founders: ",number.possible.founders))
+  # print(c("possible.founder.cols: ",possible.founder.cols))
 
-	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.carrier.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
+	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),NumberPossibleFounders=as.integer(number.possible.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.carrier.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
 
 	number.genotypes=lr.results$NumberGenotypesVec[1]*2147483647+lr.results$NumberGenotypesVec[2]
 	#return(list(likelihood.ratio=likelihood.ratio,reordering=order.vec,separating.meioses=observed.separating.meioses))

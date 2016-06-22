@@ -244,7 +244,8 @@ end module rprint
 
 
 subroutine likelihood_ratio_main(NumberPeople, NumberProbandFounders, &
-	ObservedSeparatingMeioses, NumberOffspring, PedGenotype, FounderCols, &
+	NumberPossibleFounders, ObservedSeparatingMeioses, NumberOffspring, &
+	PedGenotype, FounderCols, &
 	NumberGenotypesVec, AllPhenotypeProbabilities, ProbandAncestors,  &
 	ObservedVector, AncestorDescendentArray, MomRow, DadRow, &
 	MinimalObservedPedigree, LikelihoodRatio)
@@ -256,7 +257,8 @@ use rprint
 implicit none
 
 !inputs
-integer :: NumberPeople, NumberProbandFounders, ObservedSeparatingMeioses
+integer :: NumberPeople, NumberProbandFounders, NumberPossibleFounders
+integer :: ObservedSeparatingMeioses
 integer, dimension(NumberPeople) :: NumberOffspring, PedGenotype, MomRow, DadRow
 integer, dimension(NumberProbandFounders) :: FounderCols
 integer, dimension(2) :: NumberGenotypesVec
@@ -273,7 +275,7 @@ integer :: i, j, k, counter, int1, int2
 integer(kind=8) :: number_genotypes_found
 integer, dimension(NumberPeople) :: status_vector, temp_changes
 logical, dimension(NumberPeople) :: founder_descendents, lineage_genotype, &
-  variable_genotype, temp_genotype, logical_vec, implied_carriers
+  variable_genotype, temp_genotype, logical_vec!, implied_carriers
 logical :: logical1
 real(kind=dble_prec) :: phenotype_probability, check_num_genotype_probability, &
   check_den_genotype_probability, denominator_genotype_probability, &
@@ -309,12 +311,12 @@ do i=1,NumberProbandFounders
   variable_genotype=founder_descendents .and. .not.lineage_genotype
 
 	!A vector of the union of the intersection of the current founder's descendents and the all known carriers ancestors
-	implied_carriers=.FALSE.
-	do j=1,NumberPeople
-		if(PedGenotype(j).eq.1) then
-			implied_carriers=implied_carriers .or. (founder_descendents .and. AncestorDescendentArray(j,:))
-		end if
-	end do
+	! implied_carriers=.FALSE.
+	! do j=1,NumberPeople
+	! 	if(PedGenotype(j).eq.1) then
+	! 		implied_carriers=implied_carriers .or. (founder_descendents .and. AncestorDescendentArray(j,:))
+	! 	end if
+	! end do
   !Here we go need to go through variable.genotype and starting from the one end set it to 0 or 1 and fix all the genotype affected by that choice, fix the next unfixed one, and so on until all are fixed.  We then work backwards to get all the possible choices.
   !Since I'm starting from 1, assume descendents outnumber ancestors meaning that being a non-carrier would fix more genotype than being a carrier.  Note this assumption shouldn't affect the final result.  In other words, start assuming j is a non-carrier... temp.genotype[j]=0
   temp_genotype=lineage_genotype !temp.genotype is a boolean vector that holds the current individual's carrier status.
@@ -363,6 +365,9 @@ do i=1,NumberProbandFounders
     !denominator is updated regardless
 		!int1 is the number of offspring that are potential carriers.
     int1=0
+		! if(NumberProbandFounders.eq.1) then
+		! 	int1=-1
+		! end if
     do j=1,NumberPeople
       if(temp_genotype(j)) then
         int1=int1+NumberOffspring(j)
@@ -402,6 +407,9 @@ do i=1,NumberProbandFounders
 				!Here we count the number of unknown genotype people who have a carrier parent
 				!note that implied genotypes are counted as known (Thus MinimalObservedPedigree is used)
 				int2=1
+				if(NumberPossibleFounders.eq.1) then
+					int2=0
+				end if
 		    do j=1,NumberPeople
 					if(.not.ObservedVector(j) .and. .not.MinimalObservedPedigree(j)) then !check his parents if one of them is a carrier
 						if(MomRow(j)>0 .and. DadRow(j)>0) then !check if the person is a founder
