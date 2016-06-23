@@ -101,12 +101,12 @@ rank.members=function(ped,affected.vector,gene="BRCA1"){
       temp.ped=ped
       temp.ped$genotype[unknown.genotype.positions[i]]=j
       temp.ped$genotype=analyze.pedigree.genotypes(temp.ped)
-      temp.results[j,i]=calculate.likelihood.ratio(temp.ped,affected.vector,gene=gene)$likelihood.ratio
+      temp.results[j+1,i]=calculate.likelihood.ratio(temp.ped,affected.vector,gene=gene)$likelihood.ratio
     }
   }
 
   #here we plot the results.
-  average.lr.changes=colSums(abs(temp.results-original.lr))
+  average.lr.changes=colSums(abs(temp.results-original.lr))/2
   temp.changes=ped$id*0
   temp.changes[unknown.genotype.positions]=average.lr.changes
   ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(ped$proband,ped$genotype==1,affected.vector==2))
