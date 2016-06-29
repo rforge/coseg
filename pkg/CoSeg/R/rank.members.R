@@ -106,7 +106,7 @@ rank.members=function(ped,affected.vector,gene="BRCA1"){
   }
 
   #here we plot the results.
-  average.lr.changes=colSums(abs(temp.results-original.lr))/2
+  average.lr.changes=colSums(abs(log10(temp.results)-log10(original.lr)))/2
   temp.changes=ped$id*0
   temp.changes[unknown.genotype.positions]=average.lr.changes
   ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(ped$proband,ped$genotype==1,affected.vector==2))
