@@ -24,6 +24,7 @@ function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL,benign
     t.tree <- cbind(famid = i, t.tree)
     a.tree <- add.affected.to.tree(t.tree,frequencies.df,g=g,benign.bool=benign.bool)
     tree.f <- rbind(tree.f, a.tree)
+    tree.f=remove.unconnected.individuals(tree.f)
     #print(tree)
   }
 

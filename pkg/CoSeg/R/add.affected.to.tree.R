@@ -21,6 +21,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
   progress <- 0
 
   no.proband.logical=TRUE
+  no.possible.proband=FALSE
   counter=0
   while(no.proband.logical){
     for (i in 1:size){
@@ -62,8 +63,8 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
 
     cancer.names.d=paste0(cancer.names,".d")
     for (i in 1:length(f)) {
-      #temp<-subset(subset(subset(subset(subset(subset(tree.f2,brst.d==1 | ovar.d == 1), geno ==1), degree <= g), degree > g-3) , dead == 0), famid==f[i])  ## for BRCA1, BRCA2 and SEER breast/ovar families
-      #temp<-subset(subset(subset(subset(subset(subset(tree.f2,crc.d==1 | endo.d == 1), geno ==1), degree <= g), degree > g-3), dead == 0), famid==f[i])  ## for LS and SEER colon/endometrial/LSminor families
+      #possible.probands<-subset(subset(subset(subset(subset(subset(tree.f2,brst.d==1 | ovar.d == 1), geno ==1), degree <= g), degree > g-3) , dead == 0), famid==f[i])  ## for BRCA1, BRCA2 and SEER breast/ovar families
+      #possible.probands<-subset(subset(subset(subset(subset(subset(tree.f2,crc.d==1 | endo.d == 1), geno ==1), degree <= g), degree > g-3), dead == 0), famid==f[i])  ## for LS and SEER colon/endometrial/LSminor families
 
       ### for general risk method
       #here we set up temp.text to be cancer1.d==1|cancer2.d==1|cancer3.d...
@@ -73,23 +74,30 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
           temp.text=paste0(temp.text,"|",cancer.names.d[j],"==1")
         }
       }
-      temp<-subset(subset(subset(subset(subset(subset(tree.f2,eval(parse(text=temp.text))), geno ==1), degree <= g), degree > g-3), dead == 0), famid==f[i])
+      possible.probands<-subset(subset(subset(subset(subset(subset(tree.f2,eval(parse(text=temp.text))), geno ==1), degree <= g), degree > g-3), dead == 0), famid==f[i])
 
-      if (nrow(temp) > 0){
-          first.temp <- temp[sample.int(nrow(temp),1),]
+      if (nrow(possible.probands) > 0){
+          first.temp <- possible.probands[sample.int(nrow(possible.probands),1),]
           first<-rbind(first, first.temp)
   		}
-    	if (nrow(temp) == 0){
+
+    	if (nrow(possible.probands) == 0){
     		noproband <- c(noproband, i)
+        no.possible.proband=TRUE
     	}
     }
 
     proband<-ifelse(rownames(tree.f2) %in% rownames(first),1,0)
     tree.f2<-cbind(tree.f2, proband)
-    for (i in 1:nrow(tree.f2)){
-      if(tree.f2$famid[i] %in% noproband){
-        tree.f2$proband[i] <- -1}
-      }
+    if(no.possible.proband){
+      tree.f2$proband <- -1
+    }
+
+    # for (i in 1:nrow(tree.f2)){
+    #   if(tree.f2$famid[i] %in% noproband){
+    #     tree.f2$proband[i] <- -1
+    #   }
+    # }
     # print(noproband)
 
     counter=counter+1

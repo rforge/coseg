@@ -646,6 +646,40 @@ analyze.pedigree.genotypes=function(ped){
 }
 
 
+
+
+remove.unconnected.individuals<-function(ped){
+#this function removes people from the pedigree who have no kids or parents in the paedigree
+#only founders will not have any parents in the pedigree so look for momid=NA
+number.people=length(ped$id)
+is.parent=ped$id*0
+
+for(i in 1:number.people){
+	if((sum(ped$momid==ped$id[i],na.rm=TRUE)>0) | (sum(ped$dadid==ped$id[i],na.rm=TRUE)>0)){
+		is.parent[i]=1
+	}else{
+		is.parent[i]=0
+	}
+}
+#print(is.parent)
+
+for(i in number.people:1){ #we go backwards because it is removing the row numbers...
+	if(is.na(ped$momid[i])){#no parents
+		if(is.parent[i]==0){ #no kids
+			ped=ped[-i,]
+		}
+	}
+}
+
+row.names(ped)=1:length(ped$id)
+
+return(ped)
+}
+
+
+
+
+
 calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
 #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
 #In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
