@@ -1,33 +1,53 @@
-\name{BRCA1Frequencies.df}
-\alias{BRCA1Frequencies.df}
-\docType{data}
+\name{PlotPedigree}
+\alias{PlotPedigree}
+%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-BRCA1 cancer incidence data frame
+Plots a tree/pedigree
 }
 \description{
-A dataframe containing annual incidence of cancers affected by the BRCA1 gene, namely ovarian cancer and breast cancer.
+This function uses the kinship2 package for easily plotting a tree.
 }
-\usage{data("BRCA1Frequencies.df")}
-\format{
-  A data frame with 800 observations on the following 5 variables.
-  \describe{
-    \item{\code{age}}{A numeric vector giving the age the data is relevant for.}
-    \item{\code{cancer.type}}{A factor with levels \code{bBRCA1} and \code{oBRCA1} which stands for breast BRCA1 cancer and ovarian BRCA1 cancer.}
-    \item{\code{female}}{A boolean/numeric vector indicating whether the data is for females(1) or males(0).}
-    \item{\code{carrier}}{A boolean/numeric vector depicting whether the data is for a carrier(1) or non-carrier(0).}
-    \item{\code{frequencies}}{A numeric vector giving the cancer incidence based on age, sex, carrier status, and gender.}
+\usage{
+PlotPedigree(ped, affected.vector=NULL, legend.location="topleft", legend.radius=0.1)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{ped}{
+    A tree generated from \code{\link{MakeTree}} or \code{\link{MakeAffectedTrees}}.
+    }
+  \item{affected.vector}{
+    A vector indicating which individuals are afffected(1).  Note that this does not differentiate unaffected(0) and unknown affection status(2).
+  }
+  \item{legend.location}{
+    A string indicating the placement of the legend.  These can be "topleft", "topright", "bottomleft", "bottomright".
+  }
+  \item{legend.radius}{
+    A real number indicating the size of the legend.
   }
 }
-\details{
-Data was converted to annual incidence using a spline with 3 df's.  Risk of cancer for people below age 20 was set at 0.
-}
-\source{
-Penetrance data from PMID: 20204502.
+%%\details{
+%%  ~~ If necessary, more details than the description above ~~
+%%}
+\value{
+  No values returned but a plot is displayed.
 }
 %%\references{
-%%  ~~ possibly secondary sources and usages ~~
+%% ~put references to the literature/web site here ~
+%%}
+\author{
+John Michael O. Ranola and Brian H. Shirts
+}
+%%\note{
+%%  ~~further notes~~
+%%}
+
+%% ~Make other sections like Warning with \section{Warning }{....} ~
+
+%%\seealso{
+%% ~~objects to See Also as \code{\link{help}}, ~~~
 %%}
 \examples{
+
   \dontrun{
     #Load all the data included in the CoSeg package.
     data(BRCA1Frequencies.df, package="CoSeg")
@@ -59,5 +79,9 @@ Penetrance data from PMID: 20204502.
     #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
     PlotPedigree(tree3)
   }
+
 }
-\keyword{datasets}
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{ ~kwd1 }
+\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

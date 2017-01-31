@@ -1,4 +1,4 @@
-make.tree <-
+MakeTree <-
 function(g=4, gdown=2, seed.age=50, demographics.df=NULL){
 
   if(is.null(demographics.df)){
@@ -73,7 +73,7 @@ return(deg)
 
 
 
-make.trees <-
+MakeTrees <-
 function(n = 1,g = 4, gdown = 2, demographics.df=NULL){
     #create seen individuals 25 years or older ,
 
@@ -89,10 +89,10 @@ function(n = 1,g = 4, gdown = 2, demographics.df=NULL){
             age.prob <- c(age.prob,age.temp)
         }   # make sure individual tested was at least 25 years old in 2010
     }
-    ## This loop will create the pedigrees calling the make.tree function
+    ## This loop will create the pedigrees calling the MakeTree function
     for(i in 1:n){
         print(i)
-        t.tree <- make.tree(g, gdown, seed.age=age.prob[i], demographics.df)
+        t.tree <- MakeTree(g, gdown, seed.age=age.prob[i], demographics.df)
         t.tree <- cbind(famid = i, t.tree)
         tree.f <- rbind(tree.f, t.tree)
     }

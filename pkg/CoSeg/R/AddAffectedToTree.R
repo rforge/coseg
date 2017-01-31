@@ -1,18 +1,19 @@
-add.affected.to.tree <-
-function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
-  #frequencies.df is a data.frame with columns age(int 1-100), cancer.type(char),female(bool), carrier(bool), and frequencies(real).
+AddAffectedToTree <-
+function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
+  #frequencies.df is a data.frame with columns age(int 1-100), cancer.type(char),female(boolean), carrier(boolean), and frequencies(real).
+  geno=degree=dead=famid=NULL #this line is here to appease R CMD Check
   if(is.null(tree.f$famid)){
     tree.f$famid=1
   }
   if(length(unique(tree.f$famid))>1){
-    stop("Error: add.affected.to.tree only works on single trees")
+    stop("Error: AddAffectedToTree only works on single trees")
   }
   if(is.null(frequencies.df)){
-    print("No frequencies given.  Using BRCA1frequencies.df")
-    frequencies.df=BRCA1frequencies.df
+    print("No frequencies given.  Using BRCA1Frequencies.df")
+    frequencies.df=BRCA1Frequencies.df
   }
 
-  if(benign.bool){
+  if(benign.boolean){
     print("Simulating a benign variant.")
   }
 
@@ -40,7 +41,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
       #risk <- criskLSS(tree.f$age[i], tree.f$female[i], tree.f$geno[i])  #SEER colon, endometrial, and minor LS tumors
 
       #this allows for simulating a benign variant by setting all individuals to non-carriers.
-      if(benign.bool){
+      if(benign.boolean){
         risk <- .crisk(tree.f$age[i], tree.f$female[i], 0, frequencies.df)  # general risk function requiring frequencies.df
       }else{
         risk <- .crisk(tree.f$age[i], tree.f$female[i], tree.f$geno[i], frequencies.df)  # general risk function requiring frequencies.df
@@ -101,18 +102,18 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
     # print(noproband)
 
     counter=counter+1
-    if(max(tree.f2$proband)==1 | counter>500){
+    if(max(tree.f2$proband)==1 | counter>100){
       no.proband.logical=FALSE
     }
     if(counter %% 20 == 0){
-      print(c("add.affected.to.tree counter: ",counter))
+      print(c("AddAffectedToTree counter: ",counter))
     }
     # print(c("min(tree.f2$proband):",min(tree.f2$proband)))
     # print(c("tree.f2$proband:",tree.f2$proband))
   }
 
-  if(counter>500){
-    print("Error, proband not found for a pedigree after 500 tries.")
+  if(counter>100){
+    print("Error, proband not found for a pedigree after 100 tries.")
   }
 
   return(tree.f2)
@@ -120,13 +121,14 @@ function(tree.f,frequencies.df=NULL,g=4,benign.bool=FALSE){
 
 
 
-add.affected.to.trees <-
-function(tree.f2, frequencies.df=NULL,g=4,benign.bool=FALSE){
+AddAffectedToTrees <-
+function(tree.f, frequencies.df=NULL,g=4,benign.boolean=FALSE){
+  famid=benign=NULL #this line is here to appease R CMD Check
     temp.tree1 <- temp.tree2 <- trees <- NULL
-    f <- unique(tree.f2$famid)
+    f <- unique(tree.f$famid)
     for (i in 1:length(f)) {
-        temp.tree1<-subset(tree.f2, famid==f[i])
-        temp.tree2 <- add.affected.to.tree(tree.f=temp.tree1,frequencies.df=frequencies.df,g=g, benign.bool=benign)
+        temp.tree1<-subset(tree.f, famid==f[i])
+        temp.tree2 <- AddAffectedToTree(tree.f=temp.tree1,frequencies.df=frequencies.df,g=g, benign.boolean=benign)
         trees <- rbind(trees,temp.tree2)
     }
     return(trees)

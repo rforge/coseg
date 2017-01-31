@@ -260,6 +260,7 @@ function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cum
 
 .crisk <-
 function(age, sex, geno, frequencies.df){
+  female=carrier=cancer.type=NULL#this line is here to appease R CMD Check
   cancer.names=unique(frequencies.df$cancer.type)
   number.cancers=length(cancer.names)
   number.ages=length(unique(frequencies.df$age))
@@ -338,13 +339,6 @@ function(age, sex, geno, frequencies.df){
 }
 
 
-# .add.genotype=function(ped){
-# 	#this function converts geno to genotype where geno = 1 if carrier and 0 if unknown and genotype = 0 if not carrier, 1 if carrier, and 2 if unknown
-# 	ped$genotype=ped$geno
-# 	ped$genotype[ped$geno==0]=2
-# 	return(ped)
-# }
-
 .add.pedigree.degree=function(ped){
 	#this function modifies the pedigree so that it has the relevant degree information
 	#this function uses ped$female vec which is 1 if the individual is female and 0 otherwise
@@ -386,12 +380,12 @@ function(age, sex, geno, frequencies.df){
 
 .penetrance.prob=function(genotype,affected.vector,age,gender,gene){
 	#fMutant=c(52.3,13.89,0.821),mMutant=c(63.48,12.24,0.021), #John's BRCA1 Estimate
-  #fMutant=c(59.83,11.82,0.7396),mMutant=c(61.31,11.96,0.5851), #John's LS Estimate
+  #fMutant=c(59.83,11.82,0.7396),mMutant=c(61.31,11.96,0.5851), #John's MLH1 Estimate
 	#fMutant=c(53,16.5,0.96),mMutant=c(94.5,20,0.0025), #BRCA1 Mohammadi
 	#fMutant=c(53.9,16.5,0.96),mMutant=c(94.5,20,0.0025), #BRCA1 Jonker
 	#fMutant=c(58.5,13.8,1),mMutant=c(58.5,13.8,0.15), #BRCA2 Mohammadi
 	#fNorm=c(64.02,10.38,0.091),mNorm=c(67.29,9.73,0.0015)){ #John's BRCA1 Estimate
-  #fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's LS Estimate
+  #fNorm=c(65.39,11.54,0.1115),mNorm=c(67.36,10.36,0.1014)){ #John's MLH1 Estimate
 	#fNorm=c(72,20,0.15),mNorm=c(94.5,20,0.0025)){ #Mohammadi listed
 	#fNorm=c(66.3,14.9,0.08),mNorm=c(94.5,20,0.0025)){ #Jonker model 1
 	#fNorm=c(72,16.5,0.10),mNorm=c(94.5,20,0.0025)){ #Jonker model 2
@@ -402,11 +396,11 @@ function(age, sex, geno, frequencies.df){
   mMutant=c(63.48,12.24,0.021) #John's BRCA1 Estimate
   fNorm=c(64.02,10.38,0.091)
   mNorm=c(67.29,9.73,0.0015) #John's BRCA1 Estimate
-  if(gene=="LS"){
+  if(gene=="MLH1"){
     fMutant=c(59.83,11.82,0.7396)
-    mMutant=c(61.31,11.96,0.5851) #John's LS Estimate
+    mMutant=c(61.31,11.96,0.5851) #John's MLH1 Estimate
     fNorm=c(65.39,11.54,0.1115)
-    mNorm=c(67.36,10.36,0.1014) #John's LS Estimate
+    mNorm=c(67.36,10.36,0.1014) #John's MLH1 Estimate
   }else if(gene=="BRCA2"){
     fMutant=c(54.07,13.30,0.679)
     mMutant=c(57.27,13.43,0.090) #John's BRCA2 Estimate
@@ -428,7 +422,7 @@ function(age, sex, geno, frequencies.df){
 		return(0)
 	}
 	for(i in 1:number.people){
-		if(affected.vector[i]==2){#individual is affected
+		if(affected.vector[i]==1){#individual is affected
 			#for some reason the paper says it is given by the derivative if individual has cancer...
 			if(genotype[i]==1){
 				if(gender[i]==1){#male
@@ -444,7 +438,7 @@ function(age, sex, geno, frequencies.df){
 				}
 			}
 			prob[i]=temp
-		} else if(affected.vector[i]==1){ #individual is unaffected
+		} else if(affected.vector[i]==0){ #individual is unaffected
 			if(genotype[i]==1){
 				if(gender[i]==1){#male
 					temp=mMutant[3]*pnorm(age[i],mMutant[1],mMutant[2])
@@ -484,205 +478,43 @@ function(age, sex, geno, frequencies.df){
 }
 
 
-format.web.to.coseg=function(ped){
-  #this function takes a pedigree in the format for analyze.myvariant.org which has ordered columns with names that may not be meaningful to one with meaningful names for use in CoSeg
-	names(ped)[1]="famid"
-	names(ped)[2]="id"
-	names(ped)[3]="momid"
-	names(ped)[4]="dadid"
-  ped$female=ped[,5]*0
-  ped$female[ped[,5]==1]=1
-	names(ped)[6]="affection"
-	names(ped)[7]="age"
-	ped$genotype=ped[,9]
-	for(i in 1:length(ped$genotype)){
-		if(ped[i,8]==0 & ped[i,9]==0){
-			ped$genotype[i]=2 #unknown genotype
-		}else if(ped[i,8]==2 & ped[i,9]==2){
-			ped$genotype[i]=0 #non-carrier
-		}else if(ped[i,8]==1 & ped[i,9]==2){
-			ped$genotype[i]=1 #carrier
-		}else if(ped[i,8]==2 & ped[i,9]==1){
-			ped$genotype[i]=1 #carrier
-		}else{
-			print("Genotypes do not fit model assumptions.  Individuals should be completely typed or untyped.  Also there should not be any individuals homozygous for the mutant allele.")
-			return(0)
-		}
-	}
-	names(ped)[10]="proband"
-	return(ped)
-}
 
-
-
-analyze.pedigree.genotypes=function(ped){
-  #this function figures out which members of the pedigree truly have unknown genotypes according to the assumptions of the model (i.e. single founder).  It returns a vector of length number.people which is 0 for individuals that are known or implied non-carriers, 1 for individuals that are known or implied carriers, and 2 for untyped individuals whose genotype cannot be inferred.  We do this by finding out which individuals may be carriers and which individuals must be carriers.  This means that the rest of the individuals with unknown genotypes must be non-carriers.
+.RemoveUnconnectedIndividuals=function(ped){
+  #this function removes people from the pedigree who have no kids or parents in the paedigree
+  #only founders will not have any parents in the pedigree so look for momid=NA
   number.people=length(ped$id)
-  #first we make sure the pedigrees have the cols we need
-  ped=.add.parent.cols(ped)
-  if(length(ped$genotype)<=1){
-    # ped=.add.genotype(ped)
-    print("Error: Pedigree has no genotype information.")
-    return(0)
-  }
+  is.parent=ped$id*0
 
-  if(sum(ped$genotype==2)==0){
-    print("No members with unknown genotype to analyze.")
-    return(ped$genotype)
-  }
-
-  #Here, we find all ancestors and descendents of each individual
-  #Note that ancestor.descendent.array[i,j]=TRUE if j is an ancestor of i or i is a descendent of j
-  #Also note that for convenience in the code, ancestor.descendent.array[i,i]=TRUE
-  ancestor.descendent.array=array(FALSE,dim=c(number.people,number.people))
-  pedigree.founders={ped$momrow==0}
   for(i in 1:number.people){
-    ancestor.vec=array(FALSE,dim=c(number.people))
-    future.vec=ancestor.vec
-    ancestor.vec[i]=TRUE
-    current.vec=ancestor.vec
-    changes=TRUE
-    while(changes){
-      for(j in 1:number.people){
-        if(current.vec[j] & !pedigree.founders[j]){
-          future.vec[ped$dadrow[j]]=TRUE
-          future.vec[ped$momrow[j]]=TRUE
-        }
-      }
-      if(sum(future.vec)>0){
-        ancestor.vec=ancestor.vec|future.vec
-        current.vec=future.vec
-        future.vec[]=FALSE
-      } else {
-        changes=FALSE
-      }
-    }
-    ancestor.descendent.array[i,]=ancestor.vec[]
+  	if((sum(ped$momid==ped$id[i],na.rm=TRUE)>0) | (sum(ped$dadid==ped$id[i],na.rm=TRUE)>0)){
+  		is.parent[i]=1
+  	}else{
+  		is.parent[i]=0
+  	}
+  }
+  #print(is.parent)
+
+  for(i in number.people:1){ #we go backwards because it is removing the row numbers...
+  	if(is.na(ped$momid[i])){#no parents
+  		if(is.parent[i]==0){ #no kids
+  			ped=ped[-i,]
+  		}
+  	}
   }
 
-  #find all possible founders containing all carriers
-  if(sum(pedigree.founders & ped$genotype==1)>0){
-    possible.founders=pedigree.founders & ped$genotype==1
-  } else{
-    possible.founders=ancestor.descendent.array[ped$proband==1,]
-    for(i in 1:number.people){
-      if(ped$genotype[i]==1){
-        possible.founders=possible.founders & ancestor.descendent.array[i,]
-      }
-    }
-    #this line makes sure that there aren't any non-carrier founders in the list.
-    possible.founders=possible.founders & {ped$genotype!=0}
-    possible.founders=possible.founders & pedigree.founders
-  }
+  row.names(ped)=1:length(ped$id)
 
-
-  #Here we go through the unknown genotypes finding all possible carriers.  If an individual is a possible carrier(has a carrier parent), we set them to carrier and repeat.
-  temp.genotype=ped$genotype
-  temp.genotype[possible.founders]=1 #sets all the possible founders to carrier status
-  temp.genotype[!possible.founders & pedigree.founders]=0 #sets founders that don't contain all carriers in the lineages to be non-carriers.
-  changes=TRUE
-  while(changes){
-    changes=FALSE
-    for(i in 1:number.people){
-      if(temp.genotype[i]==2 & ped$momrow[i]>0){
-        #check if parent is a carrier
-        # print(ped$genotype)
-        # print(temp.genotype[ped$momrow[i]])
-        # print(temp.genotype[ped$dadrow[i]])
-        # print(ped$momrow[i])
-        # print(ped$dadrow[i])
-        if(temp.genotype[ped$momrow[i]]==1 | temp.genotype[ped$dadrow[i]]==1){
-          temp.genotype[i]=1
-          changes=TRUE
-        }
-      }
-    }
-  }
-  temp.positions=0*temp.genotype
-  counter=0
-  for(i in 1:number.people){
-    if(ped$genotype[i]==2 & temp.genotype[i]==1){
-      counter=counter+1
-      temp.positions[counter]=i
-    }
-  }
-  number.unknown.genotypes=sum(temp.positions>0)
-  unknown.genotype.positions=temp.positions[1:number.unknown.genotypes]
-  #temp.genotype has all possible carriers set to 1.
-
-
-  #now we find all individuals who must be carriers according to the model (single founder) and known genotypes.
-  #we can do that by going through all the known carriers up to each possible founder and taking the intersection of all these vectors.
-  minimal.pedigree=array(1,dim=c(number.people))
-  for(i in 1:number.people){
-    if(possible.founders[i]==1){
-      #find the minimal pedigree assuming this founder.
-      temp.minimal.pedigree=array(0,dim=c(number.people))
-      for(j in 1:number.people){
-        if(ped$genotype[j]==1){
-          #this finds the line connecting the carrier to the assumed founder
-          temp.lineage=ancestor.descendent.array[,i] & ancestor.descendent.array[j,]
-          temp.minimal.pedigree=temp.minimal.pedigree | temp.lineage
-        }
-      }
-      minimal.pedigree=minimal.pedigree & temp.minimal.pedigree
-    }
-  }
-  #minimal.pedigree has all implied carriers set to 1.
-
-  implied.genotype=ped$genotype
-  for(i in 1:number.people){
-    if(ped$genotype[i]==2){
-      if(minimal.pedigree[i]==1){ #must be carrier
-        implied.genotype[i]=1
-      }else if(temp.genotype[i]==0){ #must be non-carrier
-        implied.genotype[i]=0
-      }
-    }
-  }
-
-  return(implied.genotype)
-
-}
-
-
-
-
-remove.unconnected.individuals<-function(ped){
-#this function removes people from the pedigree who have no kids or parents in the paedigree
-#only founders will not have any parents in the pedigree so look for momid=NA
-number.people=length(ped$id)
-is.parent=ped$id*0
-
-for(i in 1:number.people){
-	if((sum(ped$momid==ped$id[i],na.rm=TRUE)>0) | (sum(ped$dadid==ped$id[i],na.rm=TRUE)>0)){
-		is.parent[i]=1
-	}else{
-		is.parent[i]=0
-	}
-}
-#print(is.parent)
-
-for(i in number.people:1){ #we go backwards because it is removing the row numbers...
-	if(is.na(ped$momid[i])){#no parents
-		if(is.parent[i]==0){ #no kids
-			ped=ped[-i,]
-		}
-	}
-}
-
-row.names(ped)=1:length(ped$id)
-
-return(ped)
+  return(ped)
 }
 
 
 
 
 
-calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
-#ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
-#In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
+CalculateLikelihoodRatio=
+function(ped,affected.vector,gene="BRCA1"){
+  #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
+  #In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
 
 	#Saving needed variables
 	number.people=length(ped$id)
@@ -696,8 +528,8 @@ calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
 	ped=.add.parent.cols(ped)
 
   if(length(ped$genotype)==0){
-		# ped=.add.genotype(ped)
-    stop("Error, pedigree has no genotype information.")
+		ped$genotype=ped$geno
+    # stop("Error, pedigree has no genotype information.")
 	}
 
 	observed.vector=array(FALSE,dim=c(number.people))
@@ -868,14 +700,14 @@ calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
 		if(ped$genotype[i]==1){
 			temp.lineage=ancestor.descendent.array[i,]&temp.vec
 			minimal.carrier.pedigree=minimal.carrier.pedigree|temp.lineage
-			if(affected.vector[i]==2){
+			if(affected.vector[i]==1){
 				minimal.affected.carrier.pedigree=minimal.affected.carrier.pedigree|temp.lineage
 			}
 		}
 	}
 
 	#start from the founder and check if he has 2 offspring that are carriers or if he is an observed carrier.  If not, cut him off, find his carrier offspring and check them.  Repeat until offspring either has 2 carriers or is observed.
-  if(sum(affected.vector==2 & ped$genotype==1)>1){ #if there is only one carrier affected then this is pointless.
+  if(sum(affected.vector==1 & ped$genotype==1)>1){ #if there is only one carrier affected then this is pointless.
   	current.top=temp.founder
   	if(current.top>0){
   		while(current.top>0 & !observed.vector[current.top]){
@@ -897,7 +729,7 @@ calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
   		}
   	}
   }else{
-    minimal.affected.carrier.pedigree= {affected.vector==2 & ped$genotype==1}
+    minimal.affected.carrier.pedigree= {affected.vector==1 & ped$genotype==1}
   }
 	#Repeat for minimal.carrier.pedigree
 	current.top=temp.founder
@@ -936,6 +768,7 @@ calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
 
 	likelihood.ratio=0
 	observed.separating.meioses=sum(minimal.affected.carrier.pedigree)-1
+
 	#print(c("observed.separating.meioses",observed.separating.meioses))
 	#R stores ints as 32-bits.  This gives a max value of about 2 billion.  We need a larger version so we store it as 2 32-bits integer.
 	number.genotypes.vec=array(0,dim=c(2))
@@ -943,7 +776,7 @@ calculate.likelihood.ratio=function(ped,affected.vector,gene="BRCA1"){
   number.possible.founders=sum(possible.founders)
   possible.founder.cols=which(possible.founders,arr.ind=TRUE)
   # print(c("possible.founders: ",possible.founders))
-  print(c("number.possible.founders: ",number.possible.founders))
+  #print(c("number.possible.founders: ",number.possible.founders))
   # print(c("possible.founder.cols: ",possible.founder.cols))
 
 	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),NumberPossibleFounders=as.integer(number.possible.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.carrier.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")

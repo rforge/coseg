@@ -1,15 +1,15 @@
-\name{BRCA1Frequencies.df}
-\alias{BRCA1Frequencies.df}
+\name{MLH1Frequencies.df}
+\alias{MLH1Frequencies.df}
 \docType{data}
 \title{
-BRCA1 cancer incidence data frame
+Lynch Syndrome cancer incidence data frame
 }
 \description{
-A dataframe containing annual incidence of cancers affected by the BRCA1 gene, namely ovarian cancer and breast cancer.
+A dataframe containing annual incidence of cancers affected by the Lynce Syndrome gene, namely colorectal cancer, endometrial cancer, and other minor cancer.
 }
-\usage{data("BRCA1Frequencies.df")}
+\usage{data("MLH1Frequencies.df")}
 \format{
-  A data frame with 800 observations on the following 5 variables.
+  A data frame with 1200 observations on the following 5 variables.
   \describe{
     \item{\code{age}}{A numeric vector giving the age the data is relevant for.}
     \item{\code{cancer.type}}{A factor with levels \code{bBRCA1} and \code{oBRCA1} which stands for breast BRCA1 cancer and ovarian BRCA1 cancer.}
@@ -22,7 +22,7 @@ A dataframe containing annual incidence of cancers affected by the BRCA1 gene, n
 Data was converted to annual incidence using a spline with 3 df's.  Risk of cancer for people below age 20 was set at 0.
 }
 \source{
-Penetrance data from PMID: 20204502.
+Penetrance data from PMID: 15937084 and	PMID: 19723749.	SEER from \url{http://seer.cancer.gov/}
 }
 %%\references{
 %%  ~~ possibly secondary sources and usages ~~

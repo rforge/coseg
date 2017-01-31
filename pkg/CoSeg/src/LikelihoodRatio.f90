@@ -355,6 +355,7 @@ do i=1,NumberProbandFounders
 
     !found a viable vector so save genotype*phenotype probabilities into numerator and denominator
     number_genotypes_found=number_genotypes_found+1
+		!call intpr("temp_genotype",-1,temp_genotype,NumberPeople)
 
 		!prints out the current status
 		if(mod(number_genotypes_found,25000000).eq.0) then

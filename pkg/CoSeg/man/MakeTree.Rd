@@ -1,5 +1,5 @@
-\name{make.tree}
-\alias{make.tree}
+\name{MakeTree}
+\alias{MakeTree}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Make a tree
@@ -8,7 +8,7 @@ Make a tree
 This function makes a tree based on historical average age of marriage for male and female, age of death for both sexes, and number of offspring.  For convenience, historical data for the US and China are included in the package.
 }
 \usage{
-make.tree(g = 4, gdown = 2, seed.age = 50, demographics.df = NULL)
+MakeTree(g = 4, gdown = 2, seed.age = 50, demographics.df = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -41,54 +41,56 @@ Returns a dataframe for the generated tree.  The dataframe has the columns liste
   \item{geno}{An boolean/integer giving telling whether the individual is a carrier(1) or not(0).}
 %% ...
 }
-\references{
+%%\references{
 %% ~put references to the literature/web site here ~
-}
+%%}
 \author{
 John Michael O. Ranola and Brian H. Shirts
 }
-\note{
+%%\note{
 %%  ~~further notes~~
-}
+%%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-See also \code{\link{add.affected.to.tree}}, \code{\link{make.affected.trees}}, and \code{\link{plot.ped}}
-%\code{\link{BRCA1frequencies.df}}, \code{\link{BRCA2frequencies.df}}, and \code{\link{LSfrequencies.df}}
+See also \code{\link{AddAffectedToTree}}, \code{\link{MakeAffectedTrees}}, and \code{\link{PlotPedigree}}
+%\code{\link{BRCA1Frequencies.df}}, \code{\link{BRCA2Frequencies.df}}, and \code{\link{MLH1Frequencies.df}}
 
 }
 \examples{
 
-  #Load all the data included in the CoSeg package.
-  data(BRCA1frequencies.df, package="CoSeg")
-  data(BRCA2frequencies.df, package="CoSeg")
-  data(LSfrequencies.df, package="CoSeg")
-  data(USDemographics.df, package="CoSeg")
-  data(ChinaDemographics.df, package="CoSeg")
+  \dontrun{
+    #Load all the data included in the CoSeg package.
+    data(BRCA1Frequencies.df, package="CoSeg")
+    data(BRCA2Frequencies.df, package="CoSeg")
+    data(MLH1Frequencies.df, package="CoSeg")
+    data(USDemographics.df, package="CoSeg")
+    data(ChinaDemographics.df, package="CoSeg")
 
-  #summaries of all the data
-  str(BRCA1frequencies.df)
-  str(BRCA2frequencies.df)
-  str(LSfrequencies.df)
-  str(USDemographics.df)
-  str(ChinaDemographics.df)
+    #summaries of all the data
+    str(BRCA1Frequencies.df)
+    str(BRCA2Frequencies.df)
+    str(MLH1Frequencies.df)
+    str(USDemographics.df)
+    str(ChinaDemographics.df)
 
-  #Make a tree with no affection status, g=4 generations above, gdown=2 generations below, seed.age=50, and demographics.df=NULL which defaults to USDemographics.df.
-  tree1=make.tree()
+    #Make a tree with no affection status, g=4 generations above, gdown=2 generations below, seed.age=50, and demographics.df=NULL which defaults to USDemographics.df.
+    tree1=MakeTree()
 
-  #Make a tree using Chinese demographics instead.
-  tree2=make.tree(demographics.df=ChinaDemographics.df)
+    #Make a tree using Chinese demographics instead.
+    tree2=MakeTree(demographics.df=ChinaDemographics.df)
 
-  #Add affection statust to tree2 using BRCA1frequencies.df which gives the BRCA1 penetrance function
-  tree2a=add.affected.to.tree(tree.f=tree2,frequencies.df=BRCA1frequencies.df)
+    #Add affection statust to tree2 using BRCA1Frequencies.df which gives the BRCA1 penetrance function
+    tree2a=AddAffectedToTree(tree.f=tree2,frequencies.df=BRCA1Frequencies.df)
 
-  #make a tree with affection status (same as running make.tree() and then add.affected.to.tree())
-  tree3=make.affected.trees(n=1,g=2,gdown=2,frequencies.df=LSfrequencies.df)
-  tree4=make.affected.trees(n=1,g=2,gdown=2,frequencies.df=BRCA2frequencies.df)
+    #make a tree with affection status (same as running MakeTree() and then AddAffectedToTree())
+    tree3=MakeAffectedTrees(n=1,g=2,gdown=2,frequencies.df=MLH1Frequencies.df)
+    tree4=MakeAffectedTrees(n=1,g=2,gdown=2,frequencies.df=BRCA2Frequencies.df)
 
-  #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
-  plot.ped(tree3)
+    #Plots the pedigree with affection status, proband status, and genotype.  Tree is labeled with either the current age of the inidividual, age at death, or age of first affected.
+    PlotPedigree(tree3)
+  }
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
