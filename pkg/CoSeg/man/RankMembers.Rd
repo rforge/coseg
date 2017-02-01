@@ -8,7 +8,7 @@ A function to calculate the likelihood ratio
 This function calculates the likelihood ratio for an allele causing a disease asssuming that the allele is extremely rare so that all family members who have the allele got it directly from a common ancestor in the pedigree.
 }
 \usage{
-RankMembers(ped, affected.vector, gene="BRCA1")
+RankMembers(ped, affected.vector, gene="BRCA1", legend.location="topleft", legend.radius=0.1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +20,12 @@ RankMembers(ped, affected.vector, gene="BRCA1")
 }
   \item{gene}{
   A text string (e.g. BRCA1, BRCA2, or MLH1) giving the gene name for analysis.
+  }
+  \item{legend.location}{
+    A string indicating the placement of the legend.  These can be "topleft", "topright", "bottomleft", "bottomright".
+  }
+  \item{legend.radius}{
+    A real number indicating the size of the legend.
   }
 }
 %%\details{

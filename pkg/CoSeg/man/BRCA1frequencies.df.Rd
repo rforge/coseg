@@ -7,7 +7,7 @@ BRCA1 cancer incidence data frame
 \description{
 A dataframe containing annual incidence of cancers affected by the BRCA1 gene, namely ovarian cancer and breast cancer.
 }
-\usage{data("BRCA1Frequencies.df")}
+\usage{BRCA1Frequencies.df}
 \format{
   A data frame with 800 observations on the following 5 variables.
   \describe{

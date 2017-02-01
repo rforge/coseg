@@ -4,7 +4,7 @@
   #Here, we find all ancestors and descendents of each individual
   #Note that ancestor.descendent.array[i,j]=TRUE if j is an ancestor of i or i is a descendent of j
   #Also note that for convenience in the code, ancestor.descendent.array[i,i]=TRUE
-  number.people=(ped$id)
+  number.people=length(ped$id)
   ped=.add.parent.cols(ped)
 
   ancestor.descendent.array=array(FALSE,dim=c(number.people,number.people))
@@ -54,7 +54,7 @@
 
 
   ancestor.descendent.array=.CalculateAncestorDescendentArray(ped)
-
+  pedigree.founders={ped$momrow==0}
 
 
   #find all possible founders containing all carriers
@@ -143,16 +143,16 @@
 }
 
 
-RankMembers=function(ped,affected.vector,gene="BRCA1"){
+RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft", legend.radius=0.1){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we rank the members of the pedigree with unknown genotype according to how much the likelihood ratio changes if this person were to be genotyped.  Note that we take the average of them being a carrier and non-carrier.
   number.people=length(ped$id)
   #first we check if the pedigrees have the cols we need
   ped=.add.parent.cols(ped)
   if(length(ped$genotype)==0){
-    # ped=.add.genotype(ped)
-    print("Error: Pedigree has no genotype information.")
-    return(0)
+    ped$genotype=ped$geno
+    # print("Error: Pedigree has no genotype information.")
+    # return(0)
   }
 
   ped$genotype=.AnalyzePedigreeGenotypes(ped)
@@ -169,6 +169,7 @@ RankMembers=function(ped,affected.vector,gene="BRCA1"){
   #here we find the probability that each individual with an unknown genotype is a carrier.
   ancestor.descendent.array=.CalculateAncestorDescendentArray(ped)
   probability.carrier=array(0.5,dim=c(2,number.unknown.genotypes))
+  tempprob=0
   for(i in 1:number.unknown.genotypes){
     tempint=unknown.genotype.positions[i]
     for(j in 1:number.people){
@@ -178,7 +179,7 @@ RankMembers=function(ped,affected.vector,gene="BRCA1"){
         }else if(ancestor.descendent.array[j,tempint]==1){
           tempprob=2^{1-sum(ancestor.descendent.array[j,] & ancestor.descendent.array[,tempint])}
         }else{
-          possible.founders=ancestor.descendent.array[j,] & ancestor.descendent.array[tempint,] & ped$momid==0
+          possible.founders=ancestor.descendent.array[j,] & ancestor.descendent.array[tempint,] & ped$momrow==0
           current.min=2*number.people
           current.count=0
           for(k in 1:number.people){
@@ -195,7 +196,7 @@ RankMembers=function(ped,affected.vector,gene="BRCA1"){
 
     }
   }
-  print(c("tempprob",tempprob))
+  # print(c("tempprob",tempprob))
 
 
   #here we cycle through all the unknown genotypes making each one in turn a carrier and then a non-carrier and find the likelihood ratio.
@@ -212,12 +213,13 @@ RankMembers=function(ped,affected.vector,gene="BRCA1"){
 
   #here we plot the results.
   average.lr.changes=colSums(abs(log10(temp.results*probability.carrier)-log10(original.lr)))/2
-  temp.changes=ped$id*0
+  temp.changes=array(NA,dim=c(number.people))
   temp.changes[unknown.genotype.positions]=average.lr.changes
-  ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(ped$proband,ped$genotype==1,affected.vector==1))
+  ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(Proband=ped$proband,Carrier={ped$genotype==1},Affected={affected.vector==1}))
 	plot(ped2, id=paste0(ped$id, "\n", round(ped$age), "\n", round(temp.changes,digits=2)))
 	#title(main=paste0("Pedigree with highlighted proband, genotype, and affected status"))#,sub="Label is age, age at death, or age of onset")
 	title(main="Pedigree with highlighted proband, carriers, and affection status", sub=paste0("Label is ID, age, and average likelihood ratio change. Original LR: ",round(original.lr,digits=2)))
+  pedigree.legend(ped2, location=legend.location, radius=legend.radius)
 
 	return(list(unknown.genotypes=ped$id[unknown.genotype.positions],modified.lr=temp.results,original.lr=original.lr))
 

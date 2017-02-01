@@ -7,7 +7,7 @@ Lynch Syndrome cancer incidence data frame
 \description{
 A dataframe containing annual incidence of cancers affected by the Lynce Syndrome gene, namely colorectal cancer, endometrial cancer, and other minor cancer.
 }
-\usage{data("MLH1Frequencies.df")}
+\usage{MLH1Frequencies.df}
 \format{
   A data frame with 1200 observations on the following 5 variables.
   \describe{
