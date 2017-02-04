@@ -25,7 +25,7 @@ A dataframe containing average age of marriage, death, and number offspring by y
 %%}
 \source{
 Data were taken from the following sources.
-\url{http://www.digitalhistory.uh.edu/historyonline/us24.cfm}
+\url{http://www.digitalhistory.uh.edu/}
 \url{http://demog.berkeley.edu/~andrew/1918/figure2.html}
 \url{http://www.infoplease.com/ipa/A0005148.html}
 \url{http://www.infoplease.com/ipa/A0005061.html}
