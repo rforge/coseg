@@ -64,13 +64,15 @@ John Michael O. Ranola and Brian H. Shirts
     str(USDemographics.df)
     str(ChinaDemographics.df)
 
-    #Make a tree with no affection status, g=4 generations above, gdown=2 generations below, seed.age=50, and demographics.df=NULL which defaults to USDemographics.df.
+    #Make a tree with no affection status, g=4 generations above, gdown=2 generations below,
+    #seed.age=50, and demographics.df=NULL which defaults to USDemographics.df.
     tree1=MakeTree()
 
     #Make a tree using Chinese demographics instead.
     tree2=MakeTree(demographics.df=ChinaDemographics.df)
 
-    #Add affection statust to tree2 using BRCA1Frequencies.df which gives the BRCA1 penetrance function
+    #Add affection statust to tree2 using BRCA1Frequencies.df which gives the BRCA1
+    #penetrance function
     tree1a=AddAffectedToTree(tree.f=tree1,frequencies.df=BRCA1Frequencies.df)
 
     #make a tree with affection status (same as running MakeTree() and then AddAffectedToTree())
@@ -78,8 +80,14 @@ John Michael O. Ranola and Brian H. Shirts
     #tree4=MakeAffectedTrees(n=1,g=2,gdown=2,frequencies.df=BRCA2Frequencies.df)
 
 
-    #Depending on the size of the pedigree generated, probands (defined here as members of the pedigree who are carriers of the genotype with the disease) may not always be present in the pedigree.  To alleviate this problem in this example we manually generate a pedigree.  Note that this is from the Mohammadi paper where the Likelihood method originates from.
-    ped=data.frame(degree=c(3,2,2,3,3,1,1,2,2,3), momid=c(3,NA,7,3,3,NA,NA,7,NA,8), dadid=c(2,NA,6,2,2,NA,NA,6,NA,9), id=1:10, age=c(45,60,50,31,41,68,65,55,62,43), female=c(1,0,1,0,1,0,1,1,0,1), y.born=0, dead=0, geno=2, famid=1, bBRCA1.d=0, oBRCA1.d=0, bBRCA1.aoo=NA, oBRCA1.aoo=NA, proband=0)
+    #Depending on the size of the pedigree generated, probands (defined here as members of the
+    #pedigree who are carriers of the genotype with the disease) may not always be present in
+    #the pedigree.  To alleviate this problem in this example we manually generate a pedigree.
+    #Note that this is from the Mohammadi paper where the Likelihood method originates from.
+    ped=data.frame(degree=c(3,2,2,3,3,1,1,2,2,3), momid=c(3,NA,7,3,3,NA,NA,7,NA,8),
+      dadid=c(2,NA,6,2,2,NA,NA,6,NA,9), id=1:10, age=c(45,60,50,31,41,68,65,55,62,43),
+      female=c(1,0,1,0,1,0,1,1,0,1), y.born=0, dead=0, geno=2, famid=1, bBRCA1.d=0, oBRCA1.d=0,
+      bBRCA1.aoo=NA, oBRCA1.aoo=NA, proband=0)
     ped$y.born=2010-ped$age
     ped$geno[c(1,3)]=1
     ped$bBRCA1.d[c(1,3)]=1
@@ -94,6 +102,9 @@ John Michael O. Ranola and Brian H. Shirts
 
     #Plot the pedigree
     PlotPedigree(ped, affected.vector={ped$bBRCA1.d|ped$oBRCA1.d})
+
+    #Rank and plot the members of the pedigree with unknown genotypes
+    RankMembers(ped=ped, affected.vector={ped$bBRCA1.d|ped$oBRCA1.d}, gene="BRCA1")
   }
 
 }
