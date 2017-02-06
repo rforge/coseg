@@ -23,68 +23,68 @@ end module constants
 
 
 
-module rprint
-
-	use constants
-
-	implicit none
-
-	contains
-
-
-! 	subroutine dblepr(line,nchar,dble_vector,ndata)
-! 	!line is a char up to 255
-! 	!nchar is line's length or -1 if whole line is to be printed
-! 	!dble_vector is vector to be printed of length at least ndata
-! 	!ndata is the number of elements of vector to print
-
+! module rprint
+!
+! 	use constants
+!
 ! 	implicit none
-
-! 	character(len=*) :: line
-! 	integer :: nchar, ndata
-! !	real(kind=dble_prec), dimension(:) ::dble_vector
-! 	real(kind=dble_prec) :: dble_vector
-
-! 	if(nchar==-1) then
-! 		nchar=len(trim(line))
-! 	end if
-
-! 	print*, line(1:nchar)
-! !	print*,dble_vector(1:ndata)
-! 	print*,dble_vector
-
-! 	end subroutine dblepr
-
-
-
-
-! 	subroutine intpr(line,nchar,int_vector,ndata)
-! 	!line is a char up to 255
-! 	!nchar is line's length or -1 if whole line is to be printed
-! 	!int_vector is vector to be printed of length at least ndata
-! 	!ndata is the number of elements of vector to print
-
-! 	implicit none
-
-! 	character(len=*) :: line
-! 	integer :: nchar, ndata
-! 	integer ::int_vector
-
-! 	if(nchar==-1) then
-! 		nchar=len(trim(line))
-! 	end if
-
-! 	print*, line(1:nchar)
-! !	print*,int_vector(1:ndata)
-! 	print*,int_vector
-
-! 	end subroutine intpr
-
-
-
-
-
-end module rprint
+!
+! 	contains
+!
+!
+! ! 	subroutine dblepr(line,nchar,dble_vector,ndata)
+! ! 	!line is a char up to 255
+! ! 	!nchar is line's length or -1 if whole line is to be printed
+! ! 	!dble_vector is vector to be printed of length at least ndata
+! ! 	!ndata is the number of elements of vector to print
+!
+! ! 	implicit none
+!
+! ! 	character(len=*) :: line
+! ! 	integer :: nchar, ndata
+! ! !	real(kind=dble_prec), dimension(:) ::dble_vector
+! ! 	real(kind=dble_prec) :: dble_vector
+!
+! ! 	if(nchar==-1) then
+! ! 		nchar=len(trim(line))
+! ! 	end if
+!
+! ! 	print*, line(1:nchar)
+! ! !	print*,dble_vector(1:ndata)
+! ! 	print*,dble_vector
+!
+! ! 	end subroutine dblepr
+!
+!
+!
+!
+! ! 	subroutine intpr(line,nchar,int_vector,ndata)
+! ! 	!line is a char up to 255
+! ! 	!nchar is line's length or -1 if whole line is to be printed
+! ! 	!int_vector is vector to be printed of length at least ndata
+! ! 	!ndata is the number of elements of vector to print
+!
+! ! 	implicit none
+!
+! ! 	character(len=*) :: line
+! ! 	integer :: nchar, ndata
+! ! 	integer ::int_vector
+!
+! ! 	if(nchar==-1) then
+! ! 		nchar=len(trim(line))
+! ! 	end if
+!
+! ! 	print*, line(1:nchar)
+! ! !	print*,int_vector(1:ndata)
+! ! 	print*,int_vector
+!
+! ! 	end subroutine intpr
+!
+!
+!
+!
+!
+! end module rprint
 
 
 
@@ -252,13 +252,13 @@ subroutine likelihood_ratio_main(NumberPeople, NumberProbandFounders, &
   !the general idea here is that we are finding all possible genotype.  The way we do this is we start with the left most variable genotype(lowest number) and fix it to 0.  This in turn fixes a lot of the genotype to the right(higher numbers).  To keep track of these, we set status.vector to be an integer vector where 0 means the genotype does not need to be modified anymore, otherwise it shows the number of the genotype that currently fixed it or number.people+1 if it hasn't been touched yet.  We then go right(increasing number) to the next variable genotype and fix it to 0, fix those that become fixed because of that, and modify status.vector accordingly.  Once status.vector is completely fixed, we have a viable genotype.  We now save the genotype*phenotype probabilities for that genotype for the numerator and denominator of the likelihood ratio.  We then proceed back left left(decreasing number) to the last fixed genotype and fix it to 1 and see if this fixes anything to the right(though it shouldn't).
 
 use constants
-use rprint
+! use rprint
 
 implicit none
 
 !inputs
-integer :: NumberPeople, NumberProbandFounders, NumberPossibleFounders
-integer :: ObservedSeparatingMeioses
+integer :: NumberPeople, NumberProbandFounders, NumberPossibleFounders, &
+	ObservedSeparatingMeioses
 integer, dimension(NumberPeople) :: NumberOffspring, PedGenotype, MomRow, DadRow
 integer, dimension(NumberProbandFounders) :: FounderCols
 integer, dimension(2) :: NumberGenotypesVec
@@ -272,7 +272,7 @@ real(kind=dble_prec) :: LikelihoodRatio
 
 !extra variables
 integer :: i, j, k, counter, int1, int2
-integer(kind=8) :: number_genotypes_found
+integer :: number_genotypes_found
 integer, dimension(NumberPeople) :: status_vector, temp_changes
 logical, dimension(NumberPeople) :: founder_descendents, lineage_genotype, &
   variable_genotype, temp_genotype, logical_vec!, implied_carriers
@@ -286,6 +286,7 @@ real(kind=dble_prec), dimension(NumberPeople) :: phenotype_probabilities_ratios,
 
 
 !initializing some variables
+NumberGenotypesVec=0
 phenotype_probabilities_ratios=AllPhenotypeProbabilities(1,:)/AllPhenotypeProbabilities(2,:)
 number_genotypes_found=0
 lr_denominator=0
@@ -354,7 +355,12 @@ do i=1,NumberProbandFounders
     end do
 
     !found a viable vector so save genotype*phenotype probabilities into numerator and denominator
-    number_genotypes_found=number_genotypes_found+1
+		if(number_genotypes_found==2147483647) then
+			number_genotypes_found=0
+			NumberGenotypesVec(1)=NumberGenotypesVec(1)+1
+		else
+    	number_genotypes_found=number_genotypes_found+1
+		end if
 		!call intpr("temp_genotype",-1,temp_genotype,NumberPeople)
 
 		!prints out the current status
@@ -475,9 +481,7 @@ end do
 
 LikelihoodRatio=lr_numerator/lr_denominator
 
-!converting 64bit integer to 32bit for R
-NumberGenotypesVec(1)=number_genotypes_found/2147483647
-NumberGenotypesVec(2)=mod(number_genotypes_found,2147483647)
+NumberGenotypesVec(2)=number_genotypes_found
 
 tolerance=1E-6
 
