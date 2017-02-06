@@ -2,24 +2,24 @@
 
 
 
-module constants
-
-	implicit none
-
-	integer, parameter :: dble_prec = kind(0.0d0)
-	integer, parameter :: real_prec = kind(0.0e0)
-	real(kind=dble_prec), parameter :: pi = 3.14159
-	real(kind=dble_prec), parameter :: zero = 0.00000000
-	real(kind=dble_prec), parameter :: one = 1.00000000
-	real(kind=dble_prec), parameter :: two = 2.00000000
-	real(kind=dble_prec), parameter :: ten = 10.0000000
-	!	real(kind=dble_prec), parameter :: root2=sqrt(2)
-	real(kind=dble_prec), parameter :: eps=1.e-10
-	real(kind=dble_prec), parameter :: delta=one/16.000!1.e-2
-	real(kind=dble_prec), parameter :: pseudo_count=1.0000/10.0000
-
-
-end module constants
+! module constants
+!
+! 	implicit none
+!
+! 	integer, parameter :: dble_prec = kind(0.0d0)
+! 	integer, parameter :: real_prec = kind(0.0e0)
+! 	real(kind=dble_prec), parameter :: pi = 3.14159
+! 	real(kind=dble_prec), parameter :: zero = 0.00000000
+! 	real(kind=dble_prec), parameter :: one = 1.00000000
+! 	real(kind=dble_prec), parameter :: two = 2.00000000
+! 	real(kind=dble_prec), parameter :: ten = 10.0000000
+! 	!	real(kind=dble_prec), parameter :: root2=sqrt(2)
+! 	real(kind=dble_prec), parameter :: eps=1.e-10
+! 	real(kind=dble_prec), parameter :: delta=one/16.000!1.e-2
+! 	real(kind=dble_prec), parameter :: pseudo_count=1.0000/10.0000
+!
+!
+! end module constants
 
 
 
@@ -251,10 +251,13 @@ subroutine likelihood_ratio_main(NumberPeople, NumberProbandFounders, &
 	MinimalObservedPedigree, LikelihoodRatio)
   !the general idea here is that we are finding all possible genotype.  The way we do this is we start with the left most variable genotype(lowest number) and fix it to 0.  This in turn fixes a lot of the genotype to the right(higher numbers).  To keep track of these, we set status.vector to be an integer vector where 0 means the genotype does not need to be modified anymore, otherwise it shows the number of the genotype that currently fixed it or number.people+1 if it hasn't been touched yet.  We then go right(increasing number) to the next variable genotype and fix it to 0, fix those that become fixed because of that, and modify status.vector accordingly.  Once status.vector is completely fixed, we have a viable genotype.  We now save the genotype*phenotype probabilities for that genotype for the numerator and denominator of the likelihood ratio.  We then proceed back left left(decreasing number) to the last fixed genotype and fix it to 1 and see if this fixes anything to the right(though it shouldn't).
 
-use constants
+! use constants
 ! use rprint
 
 implicit none
+
+!constants
+integer, parameter :: dble_prec = kind(0.0d0)
 
 !inputs
 integer :: NumberPeople, NumberProbandFounders, NumberPossibleFounders, &
