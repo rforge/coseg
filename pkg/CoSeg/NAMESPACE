@@ -1,3 +1,5 @@
 useDynLib(CoSeg)
 import(kinship2, splines, fGarch)
+importFrom("graphics", "lines", "title")
+importFrom("stats", "dnorm", "lm", "pnorm", "rbinom", "rnorm", "rpois")
 exportPattern("^[[:alpha:]]+")

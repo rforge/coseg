@@ -45,7 +45,7 @@ Maintainer: \packageMaintainer{CoSeg}
   str(USDemographics.df)
   str(ChinaDemographics.df)
 
-  #Make a tree with no affection status, g=4 generations above, gdown=2 generations below,
+  #Make a tree with no affection status, g=4 generations above, gdown=2 generations below
   #seed.age=50, and demographics.df=NULL which defaults to USDemographics.df.
   tree1=MakeTree()
 

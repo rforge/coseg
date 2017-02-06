@@ -8,7 +8,8 @@ Make affected trees
 A function which makes trees based on historical data with affection status based on penetrance data.
 }
 \usage{
-MakeAffectedTrees(n = 1, g = 4, gdown = 2, frequencies.df = NULL, demographics.df = NULL, benign.boolean=FALSE)
+MakeAffectedTrees(n = 1, g = 4, gdown = 2, frequencies.df = NULL, demographics.df = NULL,
+  benign.boolean=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
