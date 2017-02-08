@@ -1,7 +1,7 @@
 Package: CoSeg
 Type: Package
 Title: An R Package for Cosegregation Analysis and Simulating Pedigrees
-Version: 0.34
+Version: 0.35
 Date: 2017-02-06
 Author: John Michael O. Ranola and Brian H. Shirts
 Depends: kinship2, fGarch, splines

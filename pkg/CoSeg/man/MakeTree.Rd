@@ -47,9 +47,9 @@ Returns a dataframe for the generated tree.  The dataframe has the columns liste
 \author{
 John Michael O. Ranola and Brian H. Shirts
 }
-%%\note{
-%%  ~~further notes~~
-%%}
+\note{
+  Note that CRAN throws up a note when this package is checked saying "no visible binding for global variable...".  This is normal and does not affect the analysis.
+}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
@@ -61,12 +61,6 @@ See also \code{\link{AddAffectedToTree}}, \code{\link{MakeAffectedTrees}}, and \
 \examples{
 
   \dontrun{
-    #Load all the data included in the CoSeg package.
-    data(BRCA1Frequencies.df, package="CoSeg")
-    data(BRCA2Frequencies.df, package="CoSeg")
-    data(MLH1Frequencies.df, package="CoSeg")
-    data(USDemographics.df, package="CoSeg")
-    data(ChinaDemographics.df, package="CoSeg")
 
     #summaries of all the data
     str(BRCA1Frequencies.df)

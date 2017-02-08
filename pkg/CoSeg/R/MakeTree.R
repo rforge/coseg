@@ -1,12 +1,13 @@
 MakeTree <-
 function(g=4, gdown=2, seed.age=50, demographics.df=NULL){
 
+  y.birth <- nat <- NULL
+
   if(is.null(demographics.df)){
     print("No demographics given.  Using USDemographics.df")
     demographics.df=USDemographics.df
   }
 
-  y.birth<-nat<-NULL
   y.birth[g]<-ceiling(2010-seed.age) 			#seed tested to be 'g'th generation
   fem.prob<-sample(0:1, 1, replace=TRUE)      #randomly assign gender for individual tested to up the pedgree to the founder
 
@@ -75,26 +76,27 @@ return(deg)
 
 MakeTrees <-
 function(n = 1,g = 4, gdown = 2, demographics.df=NULL){
-    #create seen individuals 25 years or older ,
 
-    if(is.null(demographics.df)){
-        print("No demographics given.  Using USDemographics.df")
-        demographics.df=USDemographics.df
-    }
+  tree.f <- age.prob <- NULL
 
-    tree.f <- age.prob <- NULL
-    while(length(age.prob)<n){
-        age.temp <- rsnorm(1, mean = 51.49, sd = 10, xi =0.8)   #skewed normal distribution for age of seed individual from individuals tested for hereditary cancer at UW
-        if (age.temp > 25){
-            age.prob <- c(age.prob,age.temp)
-        }   # make sure individual tested was at least 25 years old in 2010
-    }
-    ## This loop will create the pedigrees calling the MakeTree function
-    for(i in 1:n){
-        print(i)
-        t.tree <- MakeTree(g, gdown, seed.age=age.prob[i], demographics.df)
-        t.tree <- cbind(famid = i, t.tree)
-        tree.f <- rbind(tree.f, t.tree)
-    }
+  #create seen individuals 25 years or older ,
+  if(is.null(demographics.df)){
+      print("No demographics given.  Using USDemographics.df")
+      demographics.df=USDemographics.df
+  }
+
+  while(length(age.prob)<n){
+      age.temp <- rsnorm(1, mean = 51.49, sd = 10, xi =0.8)   #skewed normal distribution for age of seed individual from individuals tested for hereditary cancer at UW
+      if (age.temp > 25){
+          age.prob <- c(age.prob,age.temp)
+      }   # make sure individual tested was at least 25 years old in 2010
+  }
+  ## This loop will create the pedigrees calling the MakeTree function
+  for(i in 1:n){
+      print(i)
+      t.tree <- MakeTree(g, gdown, seed.age=age.prob[i], demographics.df)
+      t.tree <- cbind(famid = i, t.tree)
+      tree.f <- rbind(tree.f, t.tree)
+  }
 return(tree.f)
 }

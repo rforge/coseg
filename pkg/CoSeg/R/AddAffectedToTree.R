@@ -1,7 +1,7 @@
 AddAffectedToTree <-
 function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
   #frequencies.df is a data.frame with columns age(int 1-100), cancer.type(char),female(boolean), carrier(boolean), and frequencies(real).
-  geno=degree=dead=famid=NULL #this line is here to appease R CMD Check
+  geno <- degree <- dead <- famid <- NULL #this line is here to appease R CMD Check
   if(is.null(tree.f$famid)){
     tree.f$famid=1
   }
@@ -10,7 +10,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
   }
   if(is.null(frequencies.df)){
     print("No frequencies given.  Using BRCA1Frequencies.df")
-    frequencies.df=BRCA1Frequencies.df
+    frequencies.df = BRCA1Frequencies.df
   }
 
   if(benign.boolean){

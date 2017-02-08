@@ -58,12 +58,6 @@ See also \code{\link{MakeTree}}, \code{\link{MakeAffectedTrees}}, and \code{\lin
 \examples{
 
   \dontrun{
-    #Load all the data included in the CoSeg package.
-    data(BRCA1Frequencies.df, package="CoSeg")
-    data(BRCA2Frequencies.df, package="CoSeg")
-    data(MLH1Frequencies.df, package="CoSeg")
-    data(USDemographics.df, package="CoSeg")
-    data(ChinaDemographics.df, package="CoSeg")
 
     #summaries of all the data
     str(BRCA1Frequencies.df)

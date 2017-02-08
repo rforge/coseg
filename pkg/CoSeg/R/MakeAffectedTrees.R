@@ -1,5 +1,8 @@
 MakeAffectedTrees <-
 function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL,benign.boolean=FALSE){
+
+  tree.f <- age.prob <- NULL #appeases R check
+
   #create seen individuals 25 years or older ,
   if(is.null(frequencies.df)){
     print("No frequencies given.  Using BRCA1Frequencies.df")
@@ -10,7 +13,6 @@ function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL,benign
     demographics.df=USDemographics.df
   }
 
-  tree.f <- age.prob <- NULL
   while(length(age.prob)<n){
   	age.temp <- rsnorm(1, mean = 51.49, sd = 10, xi =0.8)   #skewed normal distribution for age of seed individual from individuals tested for hereditary cancer at UW
       if (age.temp > 25){

@@ -1,11 +1,11 @@
 .demog.nat <-
 function(yrborn, sex, demographics.df=NULL){
 
+  i<-age.m<-age.d<-deg.1.demog<-NULL  #initialize
   if(is.null(demographics.df)){
     print("No demographics given.  Using USDemographics.df")
     demographics.df=USDemographics.df
   }
-  i<-age.m<-age.d<-deg.1.demog<-NULL  #initialize
 
   #inyr<-c(1800, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000) #entry year
   #out.year<-demographics.df$in.year+c(100, rep(10, each=10), 200)  #exit year extend to 2050.
