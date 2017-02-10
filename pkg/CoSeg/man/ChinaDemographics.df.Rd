@@ -7,7 +7,7 @@ Chinese Demographics Data Frame
 \description{
 A dataframe containing average age of marriage, death, and number offspring by year for individuals in China.
 }
-\usage{data("ChinaDemographics.df")}
+\usage{ChinaDemographics.df}
 \format{
   A data frame with 12 observations on the following 7 variables.
   \describe{

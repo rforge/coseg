@@ -1,3 +1,5 @@
+data(sysdata, envir=environment())
+
 .demog.nat <-
 function(yrborn, sex, demographics.df=NULL){
 
