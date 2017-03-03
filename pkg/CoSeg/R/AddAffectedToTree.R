@@ -23,6 +23,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
 
   no.proband.logical=TRUE
   no.possible.proband=FALSE
+  max.counter=5
   counter=0
   while(no.proband.logical){
     for (i in 1:size){
@@ -102,7 +103,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
     # print(noproband)
 
     counter=counter+1
-    if(max(tree.f2$proband)==1 | counter>100){
+    if(max(tree.f2$proband)==1 | counter>max.counter){
       no.proband.logical=FALSE
     }
     if(counter %% 20 == 0){
@@ -112,7 +113,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
     # print(c("tree.f2$proband:",tree.f2$proband))
   }
 
-  if(counter>100){
+  if(counter>max.counter){
     print("Error, proband not found for a pedigree after 100 tries.")
   }
 
