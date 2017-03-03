@@ -482,7 +482,7 @@ function(age, sex, geno, frequencies.df){
 
 
 .RemoveUnconnectedIndividuals=function(ped){
-  #this function removes people from the pedigree who have no kids or parents in the paedigree
+  #this function removes people from the pedigree who have no kids or parents in the pedigree
   #only founders will not have any parents in the pedigree so look for momid=NA
   number.people=length(ped$id)
   is.parent=ped$id*0

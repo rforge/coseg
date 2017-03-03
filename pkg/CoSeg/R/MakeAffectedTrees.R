@@ -25,8 +25,8 @@ function(n = 1,g = 4, gdown = 2,frequencies.df=NULL, demographics.df=NULL,benign
     t.tree <- MakeTree(g, gdown, seed.age=age.prob[i], demographics.df)
     t.tree <- cbind(famid = i, t.tree)
     a.tree <- AddAffectedToTree(t.tree,frequencies.df,g=g,benign.boolean=benign.boolean)
+    a.tree=.RemoveUnconnectedIndividuals(a.tree)
     tree.f <- rbind(tree.f, a.tree)
-    tree.f=.RemoveUnconnectedIndividuals(tree.f)
     #print(tree)
   }
 
