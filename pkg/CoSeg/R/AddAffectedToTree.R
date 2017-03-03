@@ -114,7 +114,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
   }
 
   if(counter>max.counter){
-    print("Error, proband not found for a pedigree after 100 tries.")
+    print(paste0("Error, proband not found for a pedigree after ", max.counter," tries."))
   }
 
   return(tree.f2)
