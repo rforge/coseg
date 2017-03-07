@@ -19,7 +19,7 @@ CalculateLikelihoodRatio(ped, affected.vector, gene="BRCA1")
   A vector giving the affection status of the individual.  0 is unaffected, 1 is affected, and 2 is unknown.
 }
   \item{gene}{
-  A text string (e.g. BRCA1, BRCA2, or MLH1) giving the gene name for analysis.
+  A text string (e.g. ATM, BRCA1, BRCA2, CHEK2, MEN1, MLH1, MSH6, or PMS2,) giving the gene name for analysis.
   }
 }
 %%\details{

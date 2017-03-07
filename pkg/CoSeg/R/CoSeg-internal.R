@@ -398,21 +398,46 @@ function(age, sex, geno, frequencies.df){
   mMutant=c(63.48,12.24,0.021) #John's BRCA1 Estimate
   fNorm=c(64.02,10.38,0.091)
   mNorm=c(67.29,9.73,0.0015) #John's BRCA1 Estimate
-  if(gene=="MLH1"){
-    fMutant=c(59.83,11.82,0.7396)
-    mMutant=c(61.31,11.96,0.5851) #John's MLH1 Estimate
-    fNorm=c(65.39,11.54,0.1115)
-    mNorm=c(67.36,10.36,0.1014) #John's MLH1 Estimate
-  }else if(gene=="BRCA2"){
-    fMutant=c(54.07,13.30,0.679)
-    mMutant=c(57.27,13.43,0.090) #John's BRCA2 Estimate
-    fNorm=c(64.02,10.38,0.091)
-    mNorm=c(67.29,9.73,0.0015) #John's SEER estimate (same as BRCA1)
+  if(gene=="ATM"){
+    fMutant=c(61.44,13.54,0.3901)
+    mMutant=c(66.29,9.74,0.008841)
+    fNorm=c(61.41,13.54,0.1555)
+    mNorm=c(66.29,9.74,0.001473)
   }else if(gene=="BRCA1"){
     fMutant=c(52.3,13.89,0.821)
     mMutant=c(63.48,12.24,0.021) #John's BRCA1 Estimate
     fNorm=c(64.02,10.38,0.091)
     mNorm=c(67.29,9.73,0.0015) #John's BRCA1 Estimate
+  }else if(gene=="BRCA2"){
+    fMutant=c(54.07,13.30,0.679)
+    mMutant=c(57.27,13.43,0.090) #John's BRCA2 Estimate
+    fNorm=c(64.02,10.38,0.091)
+    mNorm=c(67.29,9.73,0.0015) #John's SEER estimate (same as BRCA1)
+  }else if(gene=="CHEK2"){
+    fMutant=c(63.67,10.38,0.2134)
+    mMutant=c(65.32,10.74,0.1268)
+    fNorm=c(63.55,10.61,0.1373)
+    mNorm=c(65.32,10.74,0.07070)
+  }else if(gene=="MEN1"){
+    fMutant=c(36.89,10.05,0.9990)
+    mMutant=c(36.89,10.05,0.9990)
+    fNorm=c(69.65,10.44,0.1496)
+    mNorm=c(60.12,15.43,0.03766)
+  }else if(gene=="MLH1"){
+    fMutant=c(59.83,11.82,0.7396)
+    mMutant=c(61.31,11.96,0.5851) #John's MLH1 Estimate
+    fNorm=c(65.39,11.54,0.1115)
+    mNorm=c(67.36,10.36,0.1014) #John's MLH1 Estimate
+  }else if(gene=="MSH6"){
+    fMutant=c(60.87,14.42,0.7867)
+    mMutant=c(65.44,11.42,0.5856)
+    fNorm=c(63.11,11.97,0.1241)
+    mNorm=c(64.95,10.64,0.1123)
+  }else if(gene=="PMS2"){
+    fMutant=c(60.92,13.68,0.5852)
+    mMutant=c(63.19,12.26,0.4779)
+    fNorm=c(63.09,11.96,0.1240)
+    mNorm=c(64.95,10.64,0.1123)
   }else{
     print("No gene type given or identified. Using BRCA1 for penetrance. ")
   }
