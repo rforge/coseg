@@ -8,18 +8,21 @@ A function to calculate the likelihood ratio
 This function calculates the likelihood ratio for an allele causing a disease asssuming that the allele is extremely rare so that all family members who have the allele got it directly from a common ancestor in the pedigree.
 }
 \usage{
-CalculateLikelihoodRatio(ped, affected.vector, gene="BRCA1")
+CalculateLikelihoodRatio(ped, affected.vector, gene="BRCA1", penetrance.parameters=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{ped}{
-  A dataframe of a pedigree containing id, momid, dadid, age(Current age or age affected), y.born(year born), female(a logical where 1 is female and 0 is male), and genotype(0 is non-carrier, 1 carrier, and 2 unknown) in any order but with these specific column names.
-}
+    A dataframe of a pedigree containing id, momid, dadid, age(Current age or age affected), y.born(year born), female(a logical where 1 is female and 0 is male), and genotype(0 is non-carrier, 1 carrier, and 2 unknown) in any order but with these specific column names.
+  }
   \item{affected.vector}{
-  A vector giving the affection status of the individual.  0 is unaffected, 1 is affected, and 2 is unknown.
-}
+    A vector giving the affection status of the individual.  0 is unaffected, 1 is affected, and 2 is unknown.
+  }
   \item{gene}{
-  A text string (e.g. ATM, BRCA1, BRCA2, CHEK2, MEN1, MLH1, MSH6, or PMS2,) giving the gene name for analysis.
+    A text string (e.g. ATM, BRCA1, BRCA2, CHEK2, MEN1, MLH1, MSH6, PMS2, or CUSTOM) giving the gene name for analysis.  Note if CUSTOM is chosen, the penetrance.parameters must be input.
+  }
+  \item{penetrance.parameters}{
+    A vector of penetrance parameters for analysis on custom genes.  This vector should have length 12 and consist of (mu, sigma,r) for female mutation carriers, followed by (mu, sigma,r) for male mutation carriers, then (mu, sigma,r) for female non mutation carriers, and lastly (mu, sigma,r) for male non mutation carriers.  Note that one must set gene="CUSTOM" to input custom penetrance parameters.
   }
 }
 %%\details{

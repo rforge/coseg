@@ -380,7 +380,7 @@ function(age, sex, geno, frequencies.df){
 
 
 
-.penetrance.prob=function(genotype,affected.vector,age,gender,gene){
+.penetrance.prob=function(genotype,affected.vector,age,gender,gene,penetrance.parameters=NULL){
 	#fMutant=c(52.3,13.89,0.821),mMutant=c(63.48,12.24,0.021), #John's BRCA1 Estimate
   #fMutant=c(59.83,11.82,0.7396),mMutant=c(61.31,11.96,0.5851), #John's MLH1 Estimate
 	#fMutant=c(53,16.5,0.96),mMutant=c(94.5,20,0.0025), #BRCA1 Mohammadi
@@ -438,6 +438,20 @@ function(age, sex, geno, frequencies.df){
     mMutant=c(63.19,12.26,0.4779)
     fNorm=c(63.09,11.96,0.1240)
     mNorm=c(64.95,10.64,0.1123)
+  }else if({gene=="Custom"|gene=="CUSTOM"} & !is.null(penetrance.parameters)){
+    if(length(penetrance.parameters)!=12){
+      print("penetrance.parameters does not have length 12.  penetrance.parameters should be (mu, sigma, r) for female carriers, male carriers, female non-carriers, and male non-carriers.  See manual for more information.")
+      stop()
+    }
+    fMutant=penetrance.parameters[1:3]
+    mMutant=penetrance.parameters[4:6]
+    fNorm=penetrance.parameters[7:9]
+    mNorm=penetrance.parameters[10:12]
+    print("Custom penetrance parameters used.  Parameters (mu, sigma, r) for the different groups are: ")
+    print(c("Female Carriers: ", fMutant))
+    print(c("Male Carriers: ", mMutant))
+    print(c("Female non-Carriers: ", fNorm))
+    print(c("Male non-Carriers: ", mNorm))
   }else{
     print("No gene type given or identified. Using BRCA1 for penetrance. ")
   }
@@ -539,7 +553,7 @@ function(age, sex, geno, frequencies.df){
 
 
 CalculateLikelihoodRatio=
-function(ped,affected.vector,gene="BRCA1"){
+function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
 
@@ -680,7 +694,7 @@ function(ped,affected.vector,gene="BRCA1"){
 	#note that 1 is not carrier and 2 is carrier
 	all.phenotype.probabilities=array(0,dim=c(2,number.people))
 	for(i in 1:2){
-		all.phenotype.probabilities[i,]=.penetrance.prob(genotype=rep({i-1},times=number.people),affected.vector=affected.vector,age=ped$age,gender={ped$female+1},gene=gene)
+		all.phenotype.probabilities[i,]=.penetrance.prob(genotype=rep({i-1},times=number.people),affected.vector=affected.vector,age=ped$age,gender={ped$female+1},gene=gene,penetrance.parameters=penetrance.parameters)
 	}
 
 	# #We try to speed up the algorithm by saving the ratios of the phenotype probabilities for use later
