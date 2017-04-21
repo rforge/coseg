@@ -1,7 +1,7 @@
+#This is R code for CoSeg made by John Michael O. Ranola ranolaj@uw.edu
 # data(sysdata, envir=environment())
 
-.demog.nat <-
-function(yrborn, sex, demographics.df=NULL){
+.demog.nat <- function(yrborn, sex, demographics.df=NULL){
 
   i<-age.m<-age.d<-deg.1.demog<-NULL  #initialize
   if(is.null(demographics.df)){
@@ -50,8 +50,7 @@ function(yrborn, sex, demographics.df=NULL){
   return(deg.1.demog)
 }
 
-.demog <-
-function(offnum, aveage, sdage){
+.demog <- function(offnum, aveage, sdage){
   n<-NULL
   if(sum(n)==0){
   n<-rpois(1, lambda=abs(offnum))
@@ -61,11 +60,10 @@ function(offnum, aveage, sdage){
   female<-sample(0:1, n, replace=T) #randomly assigne geneder
   id<-c(1:n)#within family id
   ped<-list("id"=id, "age"=age, "female"=female)
-return(ped)
+  return(ped)
 }
 
-.demog.2 <-
-function(offnum, y.birth, demographics.df=NULL){
+.demog.2 <- function(offnum, y.birth, demographics.df=NULL){
   age<-age.temp<-dead<-y.born<-NULL
 
   if(is.null(offnum)){
@@ -106,11 +104,10 @@ function(offnum, y.birth, demographics.df=NULL){
   }
   ped<-list("id"=id, "age"=age, "female"=female, "y.born"=y.born, "dead"=dead)
   #print(ped)
-return(ped)
+  return(ped)
 }
 
-.genotype <-
-function(mom, dad, ped){
+.genotype <- function(mom, dad, ped){
   fromdad<-frommom<-NULL
 
   if(all(is.numeric(ped$id))==FALSE&all(is.numeric(ped$age))==FALSE&all(is.numeric(ped$female))==FALSE&all(is.numeric(ped$y.born))==FALSE){
@@ -137,11 +134,10 @@ function(mom, dad, ped){
   # return kids' genotypes
   ped$geno<-fromdad + frommom
   }
-return(ped)
+  return(ped)
 }
 
-.grow.p <-
-function(prev.dat,demographics.df=NULL){
+.grow.p <- function(prev.dat,demographics.df=NULL){
   deg.num <- max(prev.dat$degree)
   next.deg <- deg.num+1
   tcur.deg <- subset(prev.dat, prev.dat$degree==deg.num)
@@ -235,16 +231,15 @@ function(prev.dat,demographics.df=NULL){
     next.dat<- rbind(next.dat,temp)
 
   }
-### can we remove the NA from the
-next.dat$id <- 1:length(next.dat$id)
-next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
-next.dat.1<-rbind(prev.dat,in.2,next.dat)
-return(next.dat.1)
+  ### can we remove the NA from the
+  next.dat$id <- 1:length(next.dat$id)
+  next.dat$id <- next.dat$id+round(max(prev.dat$id),0)
+  next.dat.1<-rbind(prev.dat,in.2,next.dat)
+  return(next.dat.1)
 }
 
 
-.risktoinci <-
-function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cumulative risk at those points
+.risktoinci <- function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cumulative risk at those points
 	fit <- lm( y~ns(x, spli) )
 	xx <- seq(0,100, length.out=100)
 	xxx <- seq(1,101, length.out=100)
@@ -260,8 +255,7 @@ function(x,y, nzero = 20, spli = 3){    #x is age (in year)time points, y is cum
 	return(annual)
 }
 
-.crisk <-
-function(age, sex, geno, frequencies.df){
+.crisk <- function(age, sex, geno, frequencies.df){
   female=carrier=cancer.type=NULL#this line is here to appease R CMD Check
   cancer.names=unique(frequencies.df$cancer.type)
   number.cancers=length(cancer.names)
@@ -650,6 +644,7 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 	}
 	#print(ancestor.descendent.array)
 
+  #This is R code for CoSeg made by John Michael O. Ranola ranolaj@uw.edu
 	#The methods below depend on the ordering of the pedigree.  The ancestors of the pedigree should have a lower number than the descendents of the pedigree.  Here, we check to see if that's the case and reorder if not.
 	counter=1 #note:counter starts at 2 because 1 is trivially true
 	attempt.number=1

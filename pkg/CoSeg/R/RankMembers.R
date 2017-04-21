@@ -1,4 +1,4 @@
-
+#This is R code for CoSeg made by John Michael O. Ranola ranolaj@uw.edu
 
 .CalculateAncestorDescendentArray=function(ped){
   #Here, we find all ancestors and descendents of each individual
@@ -126,6 +126,7 @@
     }
   }
   #minimal.pedigree has all implied carriers set to 1.
+  #This is R code for CoSeg made by John Michael O. Ranola ranolaj@uw.edu
 
   implied.genotype=ped$genotype
   for(i in 1:number.people){
