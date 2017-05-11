@@ -441,11 +441,6 @@
     mMutant=penetrance.parameters[4:6]
     fNorm=penetrance.parameters[7:9]
     mNorm=penetrance.parameters[10:12]
-    print("Custom penetrance parameters used.  Parameters (mu, sigma, r) for the different groups are: ")
-    print(c("Female Carriers: ", fMutant))
-    print(c("Male Carriers: ", mMutant))
-    print(c("Female non-Carriers: ", fNorm))
-    print(c("Male non-Carriers: ", mNorm))
   }else{
     print("No gene type given or identified. Using BRCA1 for penetrance. ")
   }
@@ -550,6 +545,17 @@ CalculateLikelihoodRatio=
 function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we calculate the likelihood ratio "on the fly", meaning that we don't save any possible genotype information.  This is done so we could potentially increase the number of genotype we can process.  Currently we can do 25 non-founders because the number of possible genotype then would have a maximum of 2^25 (possible is about 5% that).  This is the limiting array in terms of storage.  If we do away with it then we will be able to do much more though we will now be limited by computing time.
+  if({gene=="Custom"|gene=="CUSTOM"} & !is.null(penetrance.parameters)){
+    if(length(penetrance.parameters)!=12){
+      print("penetrance.parameters does not have length 12.  penetrance.parameters should be (mu, sigma, r) for female carriers, male carriers, female non-carriers, and male non-carriers.  See manual for more information.")
+      stop()
+    }
+    print("Custom penetrance parameters used.  Parameters (mu-mean age to diagnosis, sigma-standard deviation, r-lifetime risk) for the different groups are: ")
+    print(c("Female Carriers: ", penetrance.parameters[1:3]))
+    print(c("Male Carriers: ", penetrance.parameters[4:6]))
+    print(c("Female non-Carriers: ", penetrance.parameters[7:9]))
+    print(c("Male non-Carriers: ", penetrance.parameters[10:12]))
+  }
 
 	#Saving needed variables
 	number.people=length(ped$id)
