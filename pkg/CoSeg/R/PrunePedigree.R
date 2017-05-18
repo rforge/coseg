@@ -1,5 +1,5 @@
 #This is R code for CoSeg made by John Michael O. Ranola ranolaj@uw.edu
-# 
+#
 # .CalculateAncestorDescendentArray=function(ped){
 #   #Here, we find all ancestors and descendents of each individual
 #   #Note that ancestor.descendent.array[i,j]=TRUE if j is an ancestor of i or i is a descendent of j
@@ -73,9 +73,10 @@
 # }
 
 
-PrunePedigree=function(ped,affected.vector){
+PrunePedigree=function(ped,affected.vector,pruning.level=1){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we prune the pedigree of any individuals that are not affected, carriers, or first degree relatives of affecteds or carriers.
+	original.ped=ped
 
 	#Saving needed variables
 	number.people=length(ped$id)
@@ -95,23 +96,38 @@ PrunePedigree=function(ped,affected.vector){
 	CarrierOrAffected={affected.vector==1 | ped$genotype==1}
 	KeepVec=CarrierOrAffected
 
-  #Now include first degree relatives of affecteds/carriers
-  OldKeepVec=KeepVec
-  for(i in 1:number.people){
-    if(OldKeepVec[i]){
-			if(ped$momrow[i]!=0){
-	      #saving i's parents
-	      KeepVec[ped$momrow[i]]=TRUE
-	      KeepVec[ped$dadrow[i]]=TRUE
-				#saving i's siblings
-				SameParents={ped$momrow==ped$momrow[i] & ped$dadrow==ped$dadrow[i]}
-				KeepVec[SameParents]=TRUE
+	if(pruning.level<=1){
+	  #Now include first degree relatives of affecteds/carriers
+	  OldKeepVec=KeepVec
+	  for(i in 1:number.people){
+	    if(OldKeepVec[i]){
+				if(ped$momrow[i]!=0){
+		      #saving i's parents
+		      KeepVec[ped$momrow[i]]=TRUE
+		      KeepVec[ped$dadrow[i]]=TRUE
+					#saving i's siblings
+					SameParents={ped$momrow==ped$momrow[i] & ped$dadrow==ped$dadrow[i]}
+					KeepVec[SameParents]=TRUE
+				}
+	      #saving i's potential children
+	      KeepVec[ped$momrow==i]=TRUE
+	      KeepVec[ped$dadrow==i]=TRUE
+	    }
+	  }
+	}else{
+		#Here we are just keeping the affected or carriers but we include children of a spouse who is affected, if they have no affected/carrier kids, so that they remain connected to the pedigree.
+		for(i in 1:number.people){
+			if(KeepVec[i] & ped$momrow[i]==0){
+				if(sum(KeepVec[ped$momrow==i])+sum(KeepVec[ped$dadrow==i])==0){
+					#saving i's potential children
+					KeepVec[ped$momrow==i]=TRUE
+					KeepVec[ped$dadrow==i]=TRUE
+				}
 			}
-      #saving i's potential children
-      KeepVec[ped$momrow==i]=TRUE
-      KeepVec[ped$dadrow==i]=TRUE
-    }
-  }
+		}
+	}
+
+
 
   #Cycle through the pedigree including individuals who will connect the pedigree
   #Start by including all ancestors of the set.
@@ -164,13 +180,23 @@ PrunePedigree=function(ped,affected.vector){
   # TempPed=.RemoveUnconnectedIndividuals(TempPed)
   # return(KeepVec)
 
-	sub.ped=subset(ped,KeepVec==1)
+	if(sum(KeepVec)<=1){
+		KeepVec={ped$proband==1}
+		KeepVec[ped$momrow[ped$proband==1]]=TRUE
+		KeepVec[ped$dadrow[ped$proband==1]]=TRUE
+	}
+
+	sub.ped=subset(original.ped,KeepVec==1)
 	for(i in 1:length(sub.ped$id)){
-		if(sum(sub.ped$id==sub.ped$momid[i])<1){
-			sub.ped$momid[i]=0
+		if(!is.na(sub.ped$momid[i])){
+			if(sum(sub.ped$id==sub.ped$momid[i])<1){
+				sub.ped$momid[i]=NA
+			}
 		}
-		if(sum(sub.ped$id==sub.ped$dadid[i])<1){
-			sub.ped$dadid[i]=0
+		if(!is.na(sub.ped$dadid[i])){
+			if(sum(sub.ped$id==sub.ped$dadid[i])<1){
+				sub.ped$dadid[i]=NA
+			}
 		}
 	}
 	return(sub.ped)

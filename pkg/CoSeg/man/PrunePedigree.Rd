@@ -8,7 +8,7 @@ A function to calculate the likelihood ratio
 This function calculates the likelihood ratio for an allele causing a disease asssuming that the allele is extremely rare so that all family members who have the allele got it directly from a common ancestor in the pedigree.
 }
 \usage{
-PrunePedigree(ped, affected.vector)
+PrunePedigree(ped, affected.vector, pruning.level=1)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -17,6 +17,9 @@ PrunePedigree(ped, affected.vector)
   }
   \item{affected.vector}{
     A vector giving the affection status of the individual.  0 is unaffected, 1 is affected, and 2 is unknown.
+  }
+  \item{pruning.level}{
+    An integer with value 1 or 2.  A value of 1 will include the first degree relatives of all affecteds and carriers in the resultant pedigree.  A value of 2 will only include individuals who are affected, carriers, or both and the individuals connecting them.  Note that if the prband is the only individual left after pruning, this will return only the proband and their parents.
   }
 }
 %%\details{

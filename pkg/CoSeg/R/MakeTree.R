@@ -45,7 +45,7 @@ function(g=4, gdown=2, seed.age=50, demographics.df=NULL){
         }
     id <-1
     geno <- 1 # founder has variant by definition
-    deg.1<-as.data.frame(cbind(degree, momid, dadid, id, age, female, y.born, dead, geno))
+    deg.1<-as.data.frame(cbind(degree, momid, dadid, id, age=round(age), female, y.born, dead, geno))
 
     deg <- deg.1
     tg <- g+gdown
