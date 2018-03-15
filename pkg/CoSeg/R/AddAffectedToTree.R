@@ -23,7 +23,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
 
   no.proband.logical=TRUE
   no.possible.proband=FALSE
-  max.counter=5
+  max.counter=25
   counter=0
   while(no.proband.logical){
     for (i in 1:size){
@@ -129,7 +129,7 @@ function(tree.f, frequencies.df=NULL,g=4,benign.boolean=FALSE){
     f <- unique(tree.f$famid)
     for (i in 1:length(f)) {
         temp.tree1<-subset(tree.f, famid==f[i])
-        temp.tree2 <- AddAffectedToTree(tree.f=temp.tree1,frequencies.df=frequencies.df,g=g, benign.boolean=benign)
+        temp.tree2 <- AddAffectedToTree(tree.f=temp.tree1,frequencies.df=frequencies.df,g=g, benign.boolean=benign.boolean)
         trees <- rbind(trees,temp.tree2)
     }
     return(trees)
