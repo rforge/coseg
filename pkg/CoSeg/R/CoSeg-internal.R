@@ -273,7 +273,7 @@
     }
 
     ageT <- round(age)
-    if(ageT >=100){
+    if(ageT >= 100){
       ageT <- 99
     } ### truncate age at 100 (risks at this age are rough estimates anyway)
 

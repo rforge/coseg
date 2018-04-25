@@ -8,14 +8,14 @@ function(g=4, gdown=2, seed.age=50, demographics.df=NULL){
     demographics.df=USDemographics.df
   }
 
-  y.birth[g]<-ceiling(2010-seed.age) 			#seed tested to be 'g'th generation
-  fem.prob<-sample(0:1, 1, replace=TRUE)      #randomly assign gender for individual tested to up the pedgree to the founder
+  y.birth[g] <- ceiling(2010-seed.age) 			#seed tested to be 'g'th generation
+  fem.prob <- sample(0:1, 1, replace=TRUE)      #randomly assign gender for individual tested to up the pedgree to the founder
 
   no.possible.proband=TRUE
   counter=0
   while(no.possible.proband){
     #demographic info and birth year for all generations going back from the individual tested
-    nat[g]<-list(.demog.nat(as.numeric(y.birth[g]), fem.prob, demographics.df))  #age marriage, death age, family size for individual tested from national data "deg.1.d
+    nat[g] <- list(.demog.nat(as.numeric(y.birth[g]), fem.prob, demographics.df))  #age marriage, death age, family size for individual tested from national data "deg.1.d
     #nat[g]<-list(.demog.nat.china(as.numeric(y.birth[g]), fem.prob))
     ## generate birth year for ancestors going up the pedigree
     eeg <- g-1
@@ -27,25 +27,25 @@ function(g=4, gdown=2, seed.age=50, demographics.df=NULL){
     #print(paste("y.birth=",y.birth))
     #generation 1 ###########
     #generate this ancestor going back from "seed.age" "g" generations choose gender at random
-    degree<-1
-    momid<-NA
-    dadid<-NA
+    degree <- 1
+    momid <- NA
+    dadid <- NA
     age<-dead<-geno<-off.s<-age.temp<-female<-y.born<-age.temp<-d.age.limit<-NULL
-    female<-sample(0:1,1) #assign random gender to founder
-    y.born <-y.birth[[1]] #initialize from y.birth assign birth years for founder individual
-    age.temp<-ceiling(2010-y.born)  #age if still alive today
-    d.age.limit<-round(rnorm(1, 81.1, 5),3)  # assign an upper limit to age # why is this not from demographics
-     if (age.temp< d.age.limit){ #took the older age  current death age in 2010
-        age<-age.temp
-        dead<-0
+    female <- sample(0:1,1) #assign random gender to founder
+    y.born <- y.birth[[1]] #initialize from y.birth assign birth years for founder individual
+    age.temp <- ceiling(2010-y.born)  #age if still alive today
+    d.age.limit <- round(rnorm(1, 81.1, 5),3)  # assign an upper limit to age # why is this not from demographics
+     if (age.temp < d.age.limit){ #took the older age  current death age in 2010
+        age <- age.temp
+        dead <- 0
       }else{
-        age<-.demog.nat(y.born,female, demographics.df)$age.death
+        age <- .demog.nat(y.born,female, demographics.df)$age.death
         #age<-.demog.nat.china(y.born,female)$age.death
-        dead<-1
+        dead <- 1
         }
-    id <-1
+    id <- 1
     geno <- 1 # founder has variant by definition
-    deg.1<-as.data.frame(cbind(degree, momid, dadid, id, age=round(age), female, y.born, dead, geno))
+    deg.1 <- as.data.frame(cbind(degree, momid, dadid, id, age=round(age), female, y.born, dead, geno))
 
     deg <- deg.1
     tg <- g+gdown

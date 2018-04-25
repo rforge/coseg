@@ -56,7 +56,7 @@ function(tree.f,frequencies.df=NULL,g=4,benign.boolean=FALSE){
     #colnames(risk.f)<-c('crc.d','endo.d','minor.d','crc.aoo','endo.aoo','minor.aoo')  # use with criskLS and criskLSS
     cancer.names=unique(frequencies.df$cancer.type)
     colnames(risk.f)<-c(paste0(cancer.names,".d"),paste0(cancer.names,".aoo"))  # use with .crisk (general method)
-    tree.f2<-cbind(tree.f, risk.f)
+    tree.f2 <- cbind(tree.f, risk.f)
     #return(tree.f2)
 
     #### choosing proband from only affected, variant carriers based on carrier status, disease status, and generation of the pedigree
@@ -128,7 +128,7 @@ function(tree.f, frequencies.df=NULL,g=4,benign.boolean=FALSE){
     temp.tree1 <- temp.tree2 <- trees <- NULL
     f <- unique(tree.f$famid)
     for (i in 1:length(f)) {
-        temp.tree1<-subset(tree.f, famid==f[i])
+        temp.tree1 <- subset(tree.f, famid==f[i])
         temp.tree2 <- AddAffectedToTree(tree.f=temp.tree1,frequencies.df=frequencies.df,g=g, benign.boolean=benign.boolean)
         trees <- rbind(trees,temp.tree2)
     }
