@@ -283,6 +283,7 @@
     for(h in 1:number.cancers){
       rbfreqs <-   rbinom(number.ages,100,freqs[,h])
       for(i in 1:number.ages){
+        print(c("rbfreqs[i]",rbfreqs[i]))
         samp[i,] <- c(rep(0,(100-rbfreqs[i])),rep(1,rbfreqs[i]))
       }
       for(j in 1:ageT){
