@@ -1,8 +1,12 @@
 # Debugging Code for CoSeg
 
-# library(openxlsx)
+library(openxlsx)
 # library(kinship2)
+
 setwd("C:/Users/kamicz/Desktop/CoSeg Development/")
+install.packages("CoSeg.tar.gz", repos = NULL, type="source",INSTALL_opts = c('--no-lock'))
+library(CoSeg)
+
 temp=read.xlsx("1011_MSH2_2.xlsx")
 
 temp2=FormatWebToCoSeg2(temp)

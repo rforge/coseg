@@ -324,7 +324,9 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
       temp.ped=ped
       temp.ped$genotype[unknown.genotype.positions[i]]=j
       temp.ped$genotype=.AnalyzePedigreeGenotypes(temp.ped)
-      temp.results[j+1,i]=CalculateLikelihoodRatio(temp.ped,affected.vector,gene=gene)$likelihood.ratio
+      temp=CalculateLikelihoodRatio(temp.ped,affected.vector,gene=gene)$likelihood.ratio
+      # print(paste0(i, ",", j, ",",temp))
+      temp.results[j+1,i]=temp
     }
   }
 
