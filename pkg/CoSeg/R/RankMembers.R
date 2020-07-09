@@ -38,6 +38,7 @@
 
 .AnalyzePedigreeGenotypes=function(ped){
   #this function figures out which members of the pedigree truly have unknown genotypes according to the assumptions of the model (i.e. single founder).  It returns a vector of length number.people which is 0 for individuals that are known or implied non-carriers, 1 for individuals that are known or implied carriers, and 2 for untyped individuals whose genotype cannot be inferred.  We do this by finding out which individuals may be carriers and which individuals must be carriers.  This means that the rest of the individuals with unknown genotypes must be non-carriers.
+  # print("Beginning AnalyzePedigreeGenotypes")
   number.people=length(ped$id)
   #first we make sure the pedigrees have the cols we need
   ped=.add.parent.cols(ped)
@@ -56,7 +57,115 @@
   ancestor.descendent.array=.CalculateAncestorDescendentArray(ped)
   pedigree.founders={ped$momrow==0}
 
+  # Let's do an initial filtering for unusual cases.
 
+  # Here we find all non-carriers by proplagating all carriers genotype up the pedigree (through carriers and unknown genotype) to capture all possible founder and then propagating down from there to capture all possible carriers.  Those excluded are non carriers.
+  #propagating up to find possible founders
+  changes=TRUE
+  temp=ped$genotype
+  while(changes){
+    changes=FALSE
+    for(i in 1:number.people){
+      if(ped$genotype[i]==1){
+        if(ped$momrow[i]!=0 & ped$dadrow[i]!=0){
+          if(ped$genotype[ped$momrow[i]]==2){
+            ped$genotype[ped$momrow[i]]=1
+            changes=TRUE
+          }
+          if(ped$genotype[ped$dadrow[i]]==2){
+            ped$genotype[ped$dadrow[i]]=1
+            changes=TRUE
+          }
+        }
+      }
+      # print(i)
+      # print(ped$genotype)
+    }
+  }
+  # propagating down
+  # print("down")
+  changes=TRUE
+  while(changes){
+    changes=FALSE
+    for(i in 1:number.people){
+      if(ped$genotype[i]==1){
+        for(j in 1:number.people){ #Slow step... need to optimize
+          if(ped$momrow[j]==i | ped$dadrow[j]==i){
+            if(ped$genotype[j]==2){
+              ped$genotype[j]=1
+              changes=TRUE
+            }
+          }
+        }
+      }
+      # print(i)
+      # print(ped$genotype)
+    }
+  }
+  temp[ped$genotype==2]=0
+  ped$genotype=temp
+
+
+
+  # print("next")
+  changes=TRUE
+  counter=0
+  while(changes){
+    changes=FALSE
+    # print("test")
+    # print(ped$momrow)
+    # print(ped$dadrow)
+    # print(ped$genotype)
+    # Here we set genotype to 0 (non-carrier) if both parents are non-carriers.
+    for(i in 1:number.people){
+      # print(i)
+      if(ped$genotype[i]==2){
+        # print("test2")
+        if(ped$momrow[i]!=0 & ped$dadrow[i]!=0){
+          # print("parent genotypes")
+          # print(ped$momrow[i])
+          # print(ped$dadrow[i])
+          # print(ped$genotype[ped$momrow[i]])
+          # print(ped$genotype[ped$dadrow[i]])
+          if(ped$genotype[ped$momrow[i]]==0 & ped$genotype[ped$dadrow[i]]==0){
+            ped$genotype[i]=0
+            # print("test4")
+            # print(ped$genotype)
+            changes=TRUE
+          }
+        }
+      }
+    }
+    # print(ped$genotype)
+    # print(ped$id)
+
+    # Here if a carrier has one parent of known genotype, we set the other since we are assuming a single founder.
+    for(i in 1:number.people){
+      if(ped$genotype[i]==1){
+        if(ped$momrow[i]!=0 & ped$dadrow[i]!=0){
+          if(ped$genotype[ped$momrow[i]]==1 & ped$genotype[ped$dadrow[i]]==2){
+            ped$genotype[ped$dadrow[i]]=0
+            changes=TRUE
+          }else if(ped$genotype[ped$momrow[i]]==0 & ped$genotype[ped$dadrow[i]]==2){
+            ped$genotype[ped$dadrow[i]]=1
+            changes=TRUE
+          }else if(ped$genotype[ped$momrow[i]]==2 & ped$genotype[ped$dadrow[i]]==1){
+            ped$genotype[ped$momrow[i]]=0
+            changes=TRUE
+          }else if(ped$genotype[ped$momrow[i]]==2 & ped$genotype[ped$dadrow[i]]==0){
+            ped$genotype[ped$momrow[i]]=1
+            changes=TRUE
+          }
+        }
+      }
+    }
+    # print(counter)
+    # print(ped$genotype)
+    # print(ped$id)
+
+  }
+  # print(ped$genotype)
+  # print("original")
   #find all possible founders containing all carriers
   if(sum(pedigree.founders & ped$genotype==1)>0){
     possible.founders=pedigree.founders & ped$genotype==1
@@ -71,6 +180,7 @@
     possible.founders=possible.founders & {ped$genotype!=0}
     possible.founders=possible.founders & pedigree.founders
   }
+  # print(possible.founders)
 
 
   #Here we go through the unknown genotypes finding all possible carriers.  If an individual is a possible carrier(has a carrier parent), we set them to carrier and repeat.
@@ -140,8 +250,12 @@
   }
 
   return(implied.genotype)
+  # print("Ending AnalyzePedigreeGenotypes")
 
 }
+# test=.AnalyzePedigreeGenotypes(temp2)
+# temp2$genotype
+# test
 
 
 RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft", legend.radius=0.1){
@@ -201,9 +315,11 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
 
 
   #here we cycle through all the unknown genotypes making each one in turn a carrier and then a non-carrier and find the likelihood ratio.
+  print(paste0("Iterating through unknowns. ", number.unknown.genotypes, " total"))
   original.lr=CalculateLikelihoodRatio(ped,affected.vector,gene=gene)$likelihood.ratio
   temp.results=array(0,dim=c(2,number.unknown.genotypes))#2 rows
   for(i in 1:number.unknown.genotypes){
+    print(i)
     for(j in 0:1){#non-carrier, carrier
       temp.ped=ped
       temp.ped$genotype[unknown.genotype.positions[i]]=j
