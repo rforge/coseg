@@ -11,10 +11,11 @@ temp=read.xlsx("1011_MSH2_2.xlsx")
 
 temp2=FormatWebToCoSeg2(temp)
 
-test=.AnalyzePedigreeGenotypes(temp2)
+# temp2$genotype=AnalyzePedigreeGenotypes(temp2)
 
-PlotPedigree(temp2, affected.vector=1)
-RankMembers(temp2, affected.vector=temp2$affection==1)
+PlotPedigree(temp2, affected.vector={temp2$affection==1})
+
+RankMembers(temp2, affected.vector={temp2$affection==1})
 
 
 

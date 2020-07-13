@@ -574,6 +574,8 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
     # stop("Error, pedigree has no genotype information.")
 	}
 
+  ped$genotype=.AnalyzePedigreeGenotypes(ped) #added this to find implied genotypes
+
 	observed.vector=array(FALSE,dim=c(number.people))
 	observed.vector[ped$genotype!=2]=TRUE
 
@@ -616,7 +618,10 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 			}
 		}
 	}
-
+  print("observed.vector: ")
+  print(observed.vector)
+  print("original.observed.vector: ")
+  print(original.observed.vector)
 
 	#add degree information regardless...
 	ped=.add.pedigree.degree(ped)
@@ -715,7 +720,7 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 
 	#Here we take note of the row numbers of the possible founders
 	proband.ancestors=ancestor.descendent.array[ped$proband==1,]
-	temp.vec={proband.ancestors & pedigree.founders}
+	temp.vec={proband.ancestors & pedigree.founders & ped$genotype!=0}
 	number.proband.founders=sum(temp.vec)
 	founder.cols=which(temp.vec,arr.ind=TRUE)#note that these are not the id's but rather the col numbers(which could be the same as id)
 
@@ -723,6 +728,7 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 
 	#finding the common ancestral founder
 	temp.vec=array(TRUE,dim=c(number.people))
+  temp.vec[ped$genotype==0]=FALSE #initialize temp.vec so that no founders with known non-carrier status are selected.
 	for(i in 1:number.people){
 		if(ped$genotype[i]==1){
 			temp.vec=temp.vec&ancestor.descendent.array[i,]
@@ -748,6 +754,15 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 			}
 		}
 	}
+  print("Begin =========================================")
+  print("minimal.affected.carrier.pedigree: ")
+  print(minimal.affected.carrier.pedigree)
+
+  print("minimal.carrier.pedigree: ")
+  print(minimal.carrier.pedigree)
+  print("End =========================================")
+
+
 
 	#start from the founder and check if he has 2 offspring that are carriers or if he is an observed carrier.  If not, cut him off, find his carrier offspring and check them.  Repeat until offspring either has 2 carriers or is observed.
   if(sum(affected.vector==1 & ped$genotype==1)>1){ #if there is only one carrier affected then this is pointless.
@@ -774,15 +789,27 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
   }else{
     minimal.affected.carrier.pedigree= {affected.vector==1 & ped$genotype==1}
   }
+
+  print("Begin minimal carrier pedigre ***************************")
+  print("minimal.carrier.pedigree: ")
+  print(minimal.carrier.pedigree)
 	#Repeat for minimal.carrier.pedigree
 	current.top=temp.founder
+  print("Current.top: ")
+  print(current.top)
+  print("observed.vector: ")
+  print(observed.vector)
 	if(current.top>0){
 		while(current.top>0 & !observed.vector[current.top]){
 			#store current.top's direct descendents.
 			temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
 			#set NA's in temp.vec to FALSE
 			temp.vec[is.na(temp.vec)]=FALSE
+      print("temp.vec: ")
+      print(temp.vec)
 			temp.int=sum(temp.vec&minimal.carrier.pedigree)
+      print("temp.int: ")
+      print(temp.int)
 			if(temp.int>1){#done... no need to continue.  The top of the tree is ok
 				minimal.carrier.pedigree[current.top]=FALSE #remove the top because this one is unsure...
 				current.top=0
@@ -790,24 +817,44 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 			}else if(temp.int==1){
 				minimal.carrier.pedigree[current.top]=FALSE
 				current.top=which(temp.vec&minimal.carrier.pedigree)[1]
+        print("Current.top 2: ")
+        print(current.top)
 			}else{
 				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
 				return()
 			}
 		}
 	}
+  print("minimal.carrier.pedigree: ")
+  print(minimal.carrier.pedigree)
+  print("End minimal carrier pedigree ********************")
+
+
+
+
 
 	#Here we modify the observed values so that all founders that do not contain all the observed carriers as descendents are non-carriers.
+  print("Test section ++++++++++++++++++++++++++")
+  print("ped$genotype: ")
+  print(ped$genotype)
+  print("minimal.carrier.pedigree: ")
+  print(minimal.carrier.pedigree)
 	temp.descendents=minimal.carrier.pedigree
 	for(i in 1:number.people){
 		if(pedigree.founders[i]& !observed.vector[i]){
 			temp.descendents=ancestor.descendent.array[,i]
+      print(c("i: ", i))
+      print("temp.descendents: ")
+      print(temp.descendents)
 			if(!all(temp.descendents[minimal.carrier.pedigree])){
 				ped$genotype[i]=0
 				observed.vector[i]=TRUE
 			}
 		}
 	}
+  print("ped$genotype changed: ")
+  print(ped$genotype)
+  print("End Test section +++++++++++++++++++++++++++++++")
 
 	likelihood.ratio=0
 	observed.separating.meioses=sum(minimal.affected.carrier.pedigree)-1
@@ -817,10 +864,28 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 	number.genotypes.vec=array(0,dim=c(2))
   possible.founders={ped$genotype!=0 & pedigree.founders}
   number.possible.founders=sum(possible.founders)
-  possible.founder.cols=which(possible.founders,arr.ind=TRUE)
-  # print(c("possible.founders: ",possible.founders))
-  #print(c("number.possible.founders: ",number.possible.founders))
+  # possible.founder.cols=which(possible.founders,arr.ind=TRUE)
+
+  print("----------------------------------")
+  print("ped$id: ")
+  print(ped$id)
+  print("ped$genotype: ")
+  print(ped$genotype)
+  print("pedigree.founders: ")
+  print(pedigree.founders+0)
+  print("possible.founders: ")
+  print(possible.founders+0)
+  print("number.possible.founders: ")
+  print(number.possible.founders+0)
   # print(c("possible.founder.cols: ",possible.founder.cols))
+  print("founder.cols: ")
+  print(founder.cols+0)
+  print("proband.ancestors: ")
+  print(proband.ancestors+0)
+  print("observed.vector: ")
+  print(observed.vector+0)
+  print("minimal.carrier.pedigree")
+  print(minimal.carrier.pedigree+0)
 
 	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),NumberPossibleFounders=as.integer(number.possible.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.carrier.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
 

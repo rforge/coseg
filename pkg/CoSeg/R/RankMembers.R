@@ -253,7 +253,7 @@
   # print("Ending AnalyzePedigreeGenotypes")
 
 }
-# test=.AnalyzePedigreeGenotypes(temp2)
+# test=AnalyzePedigreeGenotypes(temp2)
 # temp2$genotype
 # test
 
@@ -319,7 +319,7 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
   original.lr=CalculateLikelihoodRatio(ped,affected.vector,gene=gene)$likelihood.ratio
   temp.results=array(0,dim=c(2,number.unknown.genotypes))#2 rows
   for(i in 1:number.unknown.genotypes){
-    print(i)
+    print(c("Current iteration number: ",i))
     for(j in 0:1){#non-carrier, carrier
       temp.ped=ped
       temp.ped$genotype[unknown.genotype.positions[i]]=j
