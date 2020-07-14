@@ -59,7 +59,7 @@
 
   # Let's do an initial filtering for unusual cases.
 
-  # Here we find all non-carriers by proplagating all carriers genotype up the pedigree (through carriers and unknown genotype) to capture all possible founder and then propagating down from there to capture all possible carriers.  Those excluded are non carriers.
+  # Here we find all non-carriers by propagating all carriers genotype up the pedigree (through carriers and unknown genotype) to capture all possible founder and then propagating down from there to capture all possible carriers.  Those excluded are non carriers.
   #propagating up to find possible founders
   changes=TRUE
   temp=ped$genotype
@@ -142,7 +142,7 @@
     # Here if a carrier has one parent of known genotype, we set the other since we are assuming a single founder.
     for(i in 1:number.people){
       if(ped$genotype[i]==1){
-        if(ped$momrow[i]!=0 & ped$dadrow[i]!=0){
+        if(ped$momrow[i]>0 & ped$dadrow[i]>0){
           if(ped$genotype[ped$momrow[i]]==1 & ped$genotype[ped$dadrow[i]]==2){
             ped$genotype[ped$dadrow[i]]=0
             changes=TRUE
@@ -257,13 +257,33 @@
 # temp2$genotype
 # test
 
+DebugPrint=function(ToPrint){
+  # print(deparse(substitute(ToPrint)))
+  # print(ToPrint)
+}
+
+# RenameID=function(ped){
+#   number.people=length(ped$id)
+#   old.id=ped$id
+#   old.momid=ped$momid
+#   old.dadid=ped$dadid
+#   ped$id=1:number.people
+#   for(i in 1:number.people){
+#     ped$momid[old.momid==old.id[i]]=i
+#     ped$dadid[old.dadid==old.id[i]]=i
+#   }
+#   return(ped)
+# }
 
 RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft", legend.radius=0.1){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we rank the members of the pedigree with unknown genotype according to how much the likelihood ratio changes if this person were to be genotyped.  Note that we take the average of them being a carrier and non-carrier.
   number.people=length(ped$id)
+  old.ped=ped
+  # ped=RenameID(ped)
   #first we check if the pedigrees have the cols we need
   ped=.add.parent.cols(ped)
+
   if(length(ped$genotype)==0){
     ped$genotype=ped$geno
     # print("Error: Pedigree has no genotype information.")
@@ -283,32 +303,47 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
   #Also note that for convenience in the code, ancestor.descendent.array[i,i]=TRUE
   #here we find the probability that each individual with an unknown genotype is a carrier.
   ancestor.descendent.array=.CalculateAncestorDescendentArray(ped)
-  probability.carrier=array(0.5,dim=c(2,number.unknown.genotypes))
+  probability.carrier=array(0,dim=c(2,number.unknown.genotypes))
   tempprob=0
   for(i in 1:number.unknown.genotypes){
     tempint=unknown.genotype.positions[i]
+    DebugPrint(tempint)
+    DebugPrint(ped$id[tempint])
     for(j in 1:number.people){
+      tempprob=0
       if(ped$genotype[j]==1){
+        DebugPrint(j)
+        DebugPrint(ped$id[j])
         if(ancestor.descendent.array[tempint,j]==1){
           tempprob=2^{1-sum(ancestor.descendent.array[tempint,] & ancestor.descendent.array[,j])}
+          DebugPrint(ancestor.descendent.array[tempint,]&ancestor.descendent.array[,j])
         }else if(ancestor.descendent.array[j,tempint]==1){
           tempprob=2^{1-sum(ancestor.descendent.array[j,] & ancestor.descendent.array[,tempint])}
+          DebugPrint(ancestor.descendent.array[j,]&ancestor.descendent.array[,tempint])
         }else{
           possible.founders=ancestor.descendent.array[j,] & ancestor.descendent.array[tempint,] & ped$momrow==0
           current.min=2*number.people
           current.count=0
           for(k in 1:number.people){
             if(possible.founders[k]){
+              DebugPrint(k)
+              DebugPrint(ped$id[k])
               current.count=sum(ancestor.descendent.array[j,]&ancestor.descendent.array[,k])+sum(ancestor.descendent.array[tempint,]&ancestor.descendent.array[,k])
+              DebugPrint(ancestor.descendent.array[j,]&ancestor.descendent.array[,k])
+              DebugPrint(ancestor.descendent.array[tempint,]&ancestor.descendent.array[,k])
+              DebugPrint(current.count)
               current.min=min(current.min,current.count)
             }
           }
+          DebugPrint(current.min)
           tempprob=2^{3-current.min}
         }
       }
-      probability.carrier[1,i]=1-tempprob #non-carrier
-      probability.carrier[2,i]=tempprob #carrier
-
+      if(tempprob>probability.carrier[2,i]){
+        probability.carrier[1,i]=1-tempprob #non-carrier
+        probability.carrier[2,i]=tempprob #carrier
+        DebugPrint(probability.carrier)
+      }
     }
   }
   # print(c("tempprob",tempprob))
@@ -322,8 +357,17 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
     print(c("Current iteration number: ",i))
     for(j in 0:1){#non-carrier, carrier
       temp.ped=ped
+      # print("temp.ped$id: ")
+      # print(temp.ped$id)
+      # print("temp.ped$genotype: before change")
+      # print(temp.ped$genotype)
       temp.ped$genotype[unknown.genotype.positions[i]]=j
+      # print(paste0(i, ",", j, ","))
+      # print("temp.ped$genotype: ")
+      # print(temp.ped$genotype)
       temp.ped$genotype=.AnalyzePedigreeGenotypes(temp.ped)
+      # print("temp.ped$genotype After analyze: ")
+      # print(temp.ped$genotype)
       temp=CalculateLikelihoodRatio(temp.ped,affected.vector,gene=gene)$likelihood.ratio
       # print(paste0(i, ",", j, ",",temp))
       temp.results[j+1,i]=temp
@@ -331,7 +375,11 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
   }
 
   #here we plot the results.
+  # print("temp.results: ")
+  # print(temp.results)
+  DebugPrint(probability.carrier)
   average.lr.changes=colSums(abs(log10(temp.results*probability.carrier)-log10(original.lr)))/2
+  DebugPrint(average.lr.changes)
   temp.changes=array(NA,dim=c(number.people))
   temp.changes[unknown.genotype.positions]=average.lr.changes
   ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(Proband=ped$proband,Carrier={ped$genotype==1},Affected={affected.vector==1}))

@@ -248,7 +248,7 @@ subroutine likelihood_ratio_main(NumberPeople, NumberProbandFounders, &
 	PedGenotype, FounderCols, &
 	NumberGenotypesVec, AllPhenotypeProbabilities, ProbandAncestors,  &
 	ObservedVector, AncestorDescendentArray, MomRow, DadRow, &
-	MinimalObservedPedigree, LikelihoodRatio)
+	MinimalCarrierPedigree, LikelihoodRatio)
   !the general idea here is that we are finding all possible genotype.  The way we do this is we start with the left most variable genotype(lowest number) and fix it to 0.  This in turn fixes a lot of the genotype to the right(higher numbers).  To keep track of these, we set status.vector to be an integer vector where 0 means the genotype does not need to be modified anymore, otherwise it shows the number of the genotype that currently fixed it or number.people+1 if it hasn't been touched yet.  We then go right(increasing number) to the next variable genotype and fix it to 0, fix those that become fixed because of that, and modify status.vector accordingly.  Once status.vector is completely fixed, we have a viable genotype.  We now save the genotype*phenotype probabilities for that genotype for the numerator and denominator of the likelihood ratio.  We then proceed back left left(decreasing number) to the last fixed genotype and fix it to 1 and see if this fixes anything to the right(though it shouldn't).
 
 ! use constants
@@ -266,7 +266,7 @@ integer, dimension(NumberPeople) :: NumberOffspring, PedGenotype, MomRow, DadRow
 integer, dimension(NumberProbandFounders) :: FounderCols
 integer, dimension(2) :: NumberGenotypesVec
 real(kind=dble_prec), dimension(2,NumberPeople) :: AllPhenotypeProbabilities
-logical, dimension(NumberPeople) :: MinimalObservedPedigree, ProbandAncestors, &
+logical, dimension(NumberPeople) :: MinimalCarrierPedigree, ProbandAncestors, &
 	ObservedVector
 logical, dimension(NumberPeople,NumberPeople) :: AncestorDescendentArray
 
@@ -395,7 +395,7 @@ do i=1,NumberProbandFounders
     !numerator is updated if the current genotype vector matches the observed genotype
     logical1=.true.
     do j=1,NumberPeople
-      if(ObservedVector(j)) then
+      ! if(ObservedVector(j)) then
         if(temp_genotype(j)) then
           if(PedGenotype(j).eq.0) then
             logical1=.false.
@@ -407,7 +407,7 @@ do i=1,NumberProbandFounders
             exit
           end if
         end if
-      end if
+      ! end if
     end do
     if(logical1) then
 			if(all(ObservedVector)) then
@@ -415,13 +415,14 @@ do i=1,NumberProbandFounders
 			else
 
 				!Here we count the number of unknown genotype people who have a carrier parent
-				!note that implied genotypes are counted as known (Thus MinimalObservedPedigree is used)
+				!note that implied genotypes are counted as known (Thus MinimalCarrierPedigree is used)
 				int2=1
 				if(NumberPossibleFounders.eq.1) then
 					int2=0
 				end if
 		    do j=1,NumberPeople
-					if(.not.ObservedVector(j) .and. .not.MinimalObservedPedigree(j)) then !check his parents if one of them is a carrier
+					if(.not.ObservedVector(j) .and. .not.MinimalCarrierPedigree(j)) then !check his parents if one of them is a carrier
+					! if(PedGenotype(j).eq.2) then !testing here...
 						if(MomRow(j)>0 .and. DadRow(j)>0) then !check if the person is a founder
 							if(temp_genotype(MomRow(j)) .or. temp_genotype(DadRow(j))) then
 			        	int2=int2+1
