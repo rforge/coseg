@@ -618,10 +618,10 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 			}
 		}
 	}
-  print("observed.vector: ")
-  print(observed.vector)
-  print("original.observed.vector: ")
-  print(original.observed.vector)
+  # print("observed.vector: ")
+  # print(observed.vector)
+  # print("original.observed.vector: ")
+  # print(original.observed.vector)
 
 	#add degree information regardless...
 	ped=.add.pedigree.degree(ped)
@@ -754,13 +754,13 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 			}
 		}
 	}
-  print("Begin =========================================")
-  print("minimal.affected.carrier.pedigree: ")
-  print(minimal.affected.carrier.pedigree)
-
-  print("minimal.carrier.pedigree: ")
-  print(minimal.carrier.pedigree)
-  print("End =========================================")
+  # print("Begin =========================================")
+  # print("minimal.affected.carrier.pedigree: ")
+  # print(minimal.affected.carrier.pedigree)
+  #
+  # print("minimal.carrier.pedigree: ")
+  # print(minimal.carrier.pedigree)
+  # print("End =========================================")
 
 
 
@@ -790,26 +790,26 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
     minimal.affected.carrier.pedigree= {affected.vector==1 & ped$genotype==1}
   }
 
-  print("Begin minimal carrier pedigre ***************************")
-  print("minimal.carrier.pedigree: ")
-  print(minimal.carrier.pedigree)
+  # print("Begin minimal carrier pedigre ***************************")
+  # print("minimal.carrier.pedigree: ")
+  # print(minimal.carrier.pedigree)
 	#Repeat for minimal.carrier.pedigree
 	current.top=temp.founder
-  print("Current.top: ")
-  print(current.top)
-  print("observed.vector: ")
-  print(observed.vector)
+  # print("Current.top: ")
+  # print(current.top)
+  # print("observed.vector: ")
+  # print(observed.vector)
 	if(current.top>0){
 		while(current.top>0 & !observed.vector[current.top]){
 			#store current.top's direct descendents.
 			temp.vec={ped$momrow==current.top}|{ped$dadrow==current.top}
 			#set NA's in temp.vec to FALSE
 			temp.vec[is.na(temp.vec)]=FALSE
-      print("temp.vec: ")
-      print(temp.vec)
+      # print("temp.vec: ")
+      # print(temp.vec)
 			temp.int=sum(temp.vec&minimal.carrier.pedigree)
-      print("temp.int: ")
-      print(temp.int)
+      # print("temp.int: ")
+      # print(temp.int)
 			if(temp.int>1){#done... no need to continue.  The top of the tree is ok
 				minimal.carrier.pedigree[current.top]=FALSE #remove the top because this one is unsure...
 				current.top=0
@@ -817,44 +817,44 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 			}else if(temp.int==1){
 				minimal.carrier.pedigree[current.top]=FALSE
 				current.top=which(temp.vec&minimal.carrier.pedigree)[1]
-        print("Current.top 2: ")
-        print(current.top)
+        # print("Current.top 2: ")
+        # print(current.top)
 			}else{
 				print("Something went wrong.  Impossible pedigree under assumptions.  Contact maintainer")
 				return()
 			}
 		}
 	}
-  print("minimal.carrier.pedigree: ")
-  print(minimal.carrier.pedigree)
-  print("End minimal carrier pedigree ********************")
+  # print("minimal.carrier.pedigree: ")
+  # print(minimal.carrier.pedigree)
+  # print("End minimal carrier pedigree ********************")
 
 
 
 
 
 	#Here we modify the observed values so that all founders that do not contain all the observed carriers as descendents are non-carriers.
-  print("Test section ++++++++++++++++++++++++++")
-  print("ped$genotype: ")
-  print(ped$genotype)
-  print("minimal.carrier.pedigree: ")
-  print(minimal.carrier.pedigree)
+  # print("Test section ++++++++++++++++++++++++++")
+  # print("ped$genotype: ")
+  # print(ped$genotype)
+  # print("minimal.carrier.pedigree: ")
+  # print(minimal.carrier.pedigree)
 	temp.descendents=minimal.carrier.pedigree
 	for(i in 1:number.people){
 		if(pedigree.founders[i]& !observed.vector[i]){
 			temp.descendents=ancestor.descendent.array[,i]
-      print(c("i: ", i))
-      print("temp.descendents: ")
-      print(temp.descendents)
+      # print(c("i: ", i))
+      # print("temp.descendents: ")
+      # print(temp.descendents)
 			if(!all(temp.descendents[minimal.carrier.pedigree])){
 				ped$genotype[i]=0
 				observed.vector[i]=TRUE
 			}
 		}
 	}
-  print("ped$genotype changed: ")
-  print(ped$genotype)
-  print("End Test section +++++++++++++++++++++++++++++++")
+  # print("ped$genotype changed: ")
+  # print(ped$genotype)
+  # print("End Test section +++++++++++++++++++++++++++++++")
 
 	likelihood.ratio=0
 	observed.separating.meioses=sum(minimal.affected.carrier.pedigree)-1
@@ -866,26 +866,26 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
   number.possible.founders=sum(possible.founders)
   # possible.founder.cols=which(possible.founders,arr.ind=TRUE)
 
-  print("----------------------------------")
-  print("ped$id: ")
-  print(ped$id)
-  print("ped$genotype: ")
-  print(ped$genotype)
-  print("pedigree.founders: ")
-  print(pedigree.founders+0)
-  print("possible.founders: ")
-  print(possible.founders+0)
-  print("number.possible.founders: ")
-  print(number.possible.founders+0)
-  # print(c("possible.founder.cols: ",possible.founder.cols))
-  print("founder.cols: ")
-  print(founder.cols+0)
-  print("proband.ancestors: ")
-  print(proband.ancestors+0)
-  print("observed.vector: ")
-  print(observed.vector+0)
-  print("minimal.carrier.pedigree")
-  print(minimal.carrier.pedigree+0)
+  # print("----------------------------------")
+  # print("ped$id: ")
+  # print(ped$id)
+  # print("ped$genotype: ")
+  # print(ped$genotype)
+  # print("pedigree.founders: ")
+  # print(pedigree.founders+0)
+  # print("possible.founders: ")
+  # print(possible.founders+0)
+  # print("number.possible.founders: ")
+  # print(number.possible.founders+0)
+  # # print(c("possible.founder.cols: ",possible.founder.cols))
+  # print("founder.cols: ")
+  # print(founder.cols+0)
+  # print("proband.ancestors: ")
+  # print(proband.ancestors+0)
+  # print("observed.vector: ")
+  # print(observed.vector+0)
+  # print("minimal.carrier.pedigree")
+  # print(minimal.carrier.pedigree+0)
 
 	lr.results=.Fortran("likelihood_ratio_main",NumberPeople=as.integer(number.people),NumberProbandFounders=as.integer(number.proband.founders),NumberPossibleFounders=as.integer(number.possible.founders),ObservedSeparatingMeioses=as.integer(observed.separating.meioses),NumberOffspring=as.integer(number.offspring), PedGenotype=as.integer(ped$genotype), FounderCols=as.integer(founder.cols), NumberGenotypesVec=as.integer(number.genotypes.vec),  AllPhenotypeProbabilities=as.double(all.phenotype.probabilities), ProbandAncestors=as.logical(proband.ancestors), ObservedVector=as.logical(observed.vector), AncestorDescendentArray=as.logical(ancestor.descendent.array), MomRow=as.integer(ped$momrow), DadRow=as.integer(ped$dadrow), MinimalObservedPedigree=as.logical(minimal.carrier.pedigree), LikelihoodRatio=as.double(likelihood.ratio),PACKAGE="CoSeg")
 
