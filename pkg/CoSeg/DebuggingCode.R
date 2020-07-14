@@ -46,3 +46,6 @@ PlotPedigree(ped, affected.vector={ped$bBRCA1.d|ped$oBRCA1.d})
 
 #Pedigree Ranking function
 RankMembers(ped, affected.vector={ped$bBRCA1.d|ped$oBRCA1.d})
+
+
+# Fin

@@ -489,10 +489,10 @@ NumberGenotypesVec(2)=number_genotypes_found
 tolerance=1E-6
 
 if(check_num_genotype_probability<1-tolerance .OR. check_num_genotype_probability>1+tolerance) then
-  call dblepr("Error: Total numerator genotype probability(Should be 1): ",-1,check_num_genotype_probability,1)
+  call dblepr("Warning: Total numerator genotype probability(Should be 1): ",-1,check_num_genotype_probability,1)
 end if
 if(check_den_genotype_probability<1-tolerance .OR. check_den_genotype_probability>1+tolerance) then
-  call dblepr("Error: Total denominator genotype probability(Should be 1): ",-1, check_den_genotype_probability,1)
+  call dblepr("Warning: Total denominator genotype probability(Should be 1): ",-1, check_den_genotype_probability,1)
 end if
 
 !call intpr("Number of genotypes found: ",-1,number_genotypes_found,1)

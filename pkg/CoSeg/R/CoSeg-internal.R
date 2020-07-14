@@ -631,29 +631,30 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 	#Also note that for convenience in the code, ancestor.descendent.array[i,i]=TRUE
 	ancestor.descendent.array=array(FALSE,dim=c(number.people,number.people))
 	pedigree.founders={ped$momrow==0}
-	for(i in 1:number.people){
-		ancestor.vec=array(FALSE,dim=c(number.people))
-		future.vec=ancestor.vec
-		ancestor.vec[i]=TRUE
-		current.vec=ancestor.vec
-		changes=TRUE
-		while(changes){
-			for(j in 1:number.people){
-				if(current.vec[j] & !pedigree.founders[j]){
-					future.vec[ped$dadrow[j]]=TRUE
-					future.vec[ped$momrow[j]]=TRUE
-				}
-			}
-			if(sum(future.vec)>0){
-				ancestor.vec=ancestor.vec|future.vec
-				current.vec=future.vec
-				future.vec[]=FALSE
-			} else {
-				changes=FALSE
-			}
-		}
-		ancestor.descendent.array[i,]=ancestor.vec[]
-	}
+  ancestor.descendent.array=.CalculateAncestorDescendentArray(ped)
+	# for(i in 1:number.people){
+	# 	ancestor.vec=array(FALSE,dim=c(number.people))
+	# 	future.vec=ancestor.vec
+	# 	ancestor.vec[i]=TRUE
+	# 	current.vec=ancestor.vec
+	# 	changes=TRUE
+	# 	while(changes){
+	# 		for(j in 1:number.people){
+	# 			if(current.vec[j] & !pedigree.founders[j]){
+	# 				future.vec[ped$dadrow[j]]=TRUE
+	# 				future.vec[ped$momrow[j]]=TRUE
+	# 			}
+	# 		}
+	# 		if(sum(future.vec)>0){
+	# 			ancestor.vec=ancestor.vec|future.vec
+	# 			current.vec=future.vec
+	# 			future.vec[]=FALSE
+	# 		} else {
+	# 			changes=FALSE
+	# 		}
+	# 	}
+	# 	ancestor.descendent.array[i,]=ancestor.vec[]
+	# }
 	#print(ancestor.descendent.array)
 
   #This is R code for CoSeg made by John Michael O. Ranola ranolaj@uw.edu
@@ -720,7 +721,7 @@ function(ped,affected.vector,gene="BRCA1",penetrance.parameters=NULL){
 
 	#Here we take note of the row numbers of the possible founders
 	proband.ancestors=ancestor.descendent.array[ped$proband==1,]
-	temp.vec={proband.ancestors & pedigree.founders & ped$genotype!=0}
+	temp.vec={proband.ancestors & pedigree.founders} # & ped$genotype!=0} #testing this line...
 	number.proband.founders=sum(temp.vec)
 	founder.cols=which(temp.vec,arr.ind=TRUE)#note that these are not the id's but rather the col numbers(which could be the same as id)
 
