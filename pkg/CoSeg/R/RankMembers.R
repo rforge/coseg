@@ -275,7 +275,7 @@ DebugPrint=function(ToPrint){
 #   return(ped)
 # }
 
-RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft", legend.radius=0.1){
+RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft", legend.radius=0.1, plot.result=TRUE){
   #ped should have id, momid, dadid, age, y.born, female, geno and or genotype,
   #In this function we rank the members of the pedigree with unknown genotype according to how much the likelihood ratio changes if this person were to be genotyped.  Note that we take the average of them being a carrier and non-carrier.
   number.people=length(ped$id)
@@ -382,12 +382,14 @@ RankMembers=function(ped,affected.vector,gene="BRCA1", legend.location="topleft"
   DebugPrint(average.lr.changes)
   temp.changes=array(NA,dim=c(number.people))
   temp.changes[unknown.genotype.positions]=average.lr.changes
-  ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(Proband=ped$proband,Carrier={ped$genotype==1},Affected={affected.vector==1}))
-	plot(ped2, id=paste0(ped$id, "\n", round(ped$age), "\n", round(temp.changes,digits=2)))
-	#title(main=paste0("Pedigree with highlighted proband, genotype, and affected status"))#,sub="Label is age, age at death, or age of onset")
-	title(main="Pedigree with highlighted proband, carriers, and affection status", sub=paste0("Label is ID, age, and average likelihood ratio change. Original LR: ",round(original.lr,digits=2)))
-  pedigree.legend(ped2, location=legend.location, radius=legend.radius)
+  if(plot.result){
+    ped2<-pedigree(id=ped$id,dadid=ped$dadid,momid=ped$momid,sex={ped$female+1},affected=cbind(Proband=ped$proband,Carrier={ped$genotype==1},Affected={affected.vector==1}))
+    plot(ped2, id=paste0(ped$id, "\n", round(ped$age), "\n", round(temp.changes,digits=2)))
+  	#title(main=paste0("Pedigree with highlighted proband, genotype, and affected status"))#,sub="Label is age, age at death, or age of onset")
+  	title(main="Pedigree with highlighted proband, carriers, and affection status", sub=paste0("Label is ID, age, and average likelihood ratio change. Original LR: ",round(original.lr,digits=2)))
+    pedigree.legend(ped2, location=legend.location, radius=legend.radius)
+  }
 
-	return(list(unknown.genotypes=ped$id[unknown.genotype.positions],modified.lr=temp.results,original.lr=original.lr))
+	return(list(unknown.genotypes=ped$id[unknown.genotype.positions],modified.lr=temp.results,original.lr=original.lr,weighted.average=temp.changes))
 
 }
